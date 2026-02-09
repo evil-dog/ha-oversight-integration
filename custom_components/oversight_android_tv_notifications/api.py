@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import socket
 from typing import Any
 
@@ -93,32 +94,37 @@ class OversightApiClient:
         method: str,
         url: str,
         data: dict | None = None,
+        retries: int = 2,
     ) -> dict[str, Any]:
-        """Wrap API calls with error handling."""
-        try:
-            async with async_timeout.timeout(10):
-                response = await self._session.request(
-                    method=method,
-                    url=url,
-                    json=data,
-                )
-                response.raise_for_status()
-                resp_json = await response.json()
+        """Wrap API calls with error handling and retry on connection errors."""
+        last_exception: Exception | None = None
+        for attempt in range(1 + retries):
+            try:
+                async with async_timeout.timeout(10):
+                    response = await self._session.request(
+                        method=method,
+                        url=url,
+                        json=data,
+                    )
+                    response.raise_for_status()
+                    resp_json = await response.json()
 
-                if not resp_json.get("success", False):
-                    msg = resp_json.get("message", "Unknown API error")
-                    raise OversightApiClientError(msg)
+                    if not resp_json.get("success", False):
+                        msg = resp_json.get("message", "Unknown API error")
+                        raise OversightApiClientError(msg)
 
-                return resp_json.get("result", {})
+                    return resp_json.get("result", {})
 
-        except OversightApiClientError:
-            raise
-        except TimeoutError as exception:
-            msg = f"Timeout connecting to OverSight device at {self._host}:{self._port}"
-            raise OversightApiClientCommunicationError(msg) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            msg = f"Error communicating with OverSight device at {self._host}:{self._port} - {exception}"
-            raise OversightApiClientCommunicationError(msg) from exception
-        except Exception as exception:
-            msg = f"Unexpected error communicating with OverSight device - {exception}"
-            raise OversightApiClientError(msg) from exception
+            except OversightApiClientError:
+                raise
+            except (TimeoutError, aiohttp.ClientError, socket.gaierror) as exception:
+                last_exception = exception
+                if attempt < retries:
+                    await asyncio.sleep(1)
+                    continue
+            except Exception as exception:
+                msg = f"Unexpected error communicating with OverSight device - {exception}"
+                raise OversightApiClientError(msg) from exception
+
+        msg = f"Error communicating with OverSight device at {self._host}:{self._port} - {last_exception}"
+        raise OversightApiClientCommunicationError(msg) from last_exception
