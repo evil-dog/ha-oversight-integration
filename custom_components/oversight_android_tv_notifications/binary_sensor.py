@@ -1,4 +1,4 @@
-"""Binary sensor platform for oversight_android_tv_notifications."""
+"""Binary sensor platform for OverSight Android TV."""
 
 from __future__ import annotations
 
@@ -10,32 +10,30 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 
-from .entity import OversightAndroidTvNotificationsEntity
+from .entity import OversightEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .coordinator import OversightAndroidTvNotificationsDataUpdateCoordinator
-    from .data import OversightAndroidTvNotificationsConfigEntry
+    from .data import OversightConfigEntry
 
 ENTITY_DESCRIPTIONS = (
     BinarySensorEntityDescription(
-        key="oversight_android_tv_notifications",
-        name="Oversight Android TV Notifications Binary Sensor",
+        key="connectivity",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
     ),
 )
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: OversightAndroidTvNotificationsConfigEntry,
+    hass: HomeAssistant,
+    entry: OversightConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the binary_sensor platform."""
+    """Set up OverSight binary sensors."""
     async_add_entities(
-        OversightAndroidTvNotificationsBinarySensor(
+        OversightConnectivitySensor(
             coordinator=entry.runtime_data.coordinator,
             entity_description=entity_description,
         )
@@ -43,19 +41,10 @@ async def async_setup_entry(
     )
 
 
-class OversightAndroidTvNotificationsBinarySensor(OversightAndroidTvNotificationsEntity, BinarySensorEntity):
-    """oversight_android_tv_notifications binary_sensor class."""
-
-    def __init__(
-        self,
-        coordinator: OversightAndroidTvNotificationsDataUpdateCoordinator,
-        entity_description: BinarySensorEntityDescription,
-    ) -> None:
-        """Initialize the binary_sensor class."""
-        super().__init__(coordinator)
-        self.entity_description = entity_description
+class OversightConnectivitySensor(OversightEntity, BinarySensorEntity):
+    """Connectivity sensor for an OverSight device."""
 
     @property
     def is_on(self) -> bool:
-        """Return true if the binary_sensor is on."""
-        return self.coordinator.data.get("title", "") == "foo"
+        """Return true if the device is reachable."""
+        return self.coordinator.last_update_success

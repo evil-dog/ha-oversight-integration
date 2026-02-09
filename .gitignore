@@ -5,13 +5,23 @@ __pycache__
 */build/*
 */dist/*
 
-
 # misc
 .coverage
 coverage.xml
 .ruff_cache
 
-
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+
+# IDE / Editor
+.idea/
+.vscode/settings.json
+
+# Environment
+.env
+venv/
+.venv/
+
+# Claude Code
+.claude/

@@ -2,20 +2,137 @@
     "config": {
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/evil-dog/ha-oversight-integration",
+                "description": "Enter the IP address and port of your OverSight Android TV device.",
                 "data": {
-                    "username": "Username",
-                    "password": "Password"
+                    "host": "Host",
+                    "port": "Port"
                 }
+            },
+            "zeroconf_confirm": {
+                "description": "Found OverSight device: **{name}**. Do you want to add it?"
             }
         },
         "error": {
-            "auth": "Username/Password is wrong.",
-            "connection": "Unable to connect to the server.",
+            "connection": "Unable to connect to the device.",
             "unknown": "Unknown error occurred."
         },
         "abort": {
-            "already_configured": "This entry is already configured."
+            "already_configured": "This device is already configured.",
+            "connection": "Unable to connect to the discovered device."
+        }
+    },
+    "entity": {
+        "number": {
+            "overlay_visibility": {
+                "name": "Overlay visibility"
+            },
+            "clock_overlay_visibility": {
+                "name": "Clock overlay visibility"
+            },
+            "notification_duration": {
+                "name": "Notification duration"
+            }
+        },
+        "select": {
+            "hot_corner": {
+                "name": "Hot corner",
+                "state": {
+                    "top_start": "Top left",
+                    "top_end": "Top right",
+                    "bottom_start": "Bottom left",
+                    "bottom_end": "Bottom right"
+                }
+            }
+        },
+        "notify": {
+            "notify": {
+                "name": "Notifications"
+            }
+        },
+        "switch": {
+            "display_notifications": {
+                "name": "Display notifications"
+            },
+            "display_fixed_notifications": {
+                "name": "Display fixed notifications"
+            },
+            "pixel_shift": {
+                "name": "Pixel shift"
+            }
+        }
+    },
+    "services": {
+        "send_fixed_notification": {
+            "name": "Send fixed notification",
+            "description": "Create or update a fixed notification badge on the device.",
+            "fields": {
+                "id": {
+                    "name": "ID",
+                    "description": "Unique identifier for the fixed notification."
+                },
+                "icon": {
+                    "name": "Icon",
+                    "description": "Icon name or URL."
+                },
+                "text": {
+                    "name": "Text",
+                    "description": "Text to display on the badge."
+                },
+                "icon_color": {
+                    "name": "Icon color",
+                    "description": "Color for the icon (hex)."
+                },
+                "message_color": {
+                    "name": "Text color",
+                    "description": "Color for the text (hex)."
+                },
+                "background_color": {
+                    "name": "Background color",
+                    "description": "Background color for the badge (hex)."
+                },
+                "border_color": {
+                    "name": "Border color",
+                    "description": "Border color for the badge (hex)."
+                },
+                "shape": {
+                    "name": "Shape",
+                    "description": "Shape of the badge."
+                },
+                "size": {
+                    "name": "Size",
+                    "description": "Size of the badge."
+                },
+                "expiration": {
+                    "name": "Expiration",
+                    "description": "When the badge expires."
+                },
+                "show_duration": {
+                    "name": "Show duration",
+                    "description": "Seconds to show before collapsing."
+                },
+                "collapse_duration": {
+                    "name": "Collapse duration",
+                    "description": "Seconds to stay collapsed."
+                },
+                "repeat_expand": {
+                    "name": "Repeat expand",
+                    "description": "Whether to repeat the expand/collapse cycle."
+                }
+            }
+        },
+        "remove_fixed_notification": {
+            "name": "Remove fixed notification",
+            "description": "Remove a fixed notification badge from the device.",
+            "fields": {
+                "id": {
+                    "name": "ID",
+                    "description": "The ID of the fixed notification to remove."
+                }
+            }
+        },
+        "screen_on": {
+            "name": "Screen on",
+            "description": "Wake the device screen."
         }
     }
 }

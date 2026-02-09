@@ -1,4 +1,4 @@
-"""Custom types for oversight_android_tv_notifications."""
+"""Custom types for the OverSight Android TV integration."""
 
 from __future__ import annotations
 
@@ -7,19 +7,17 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
-    from homeassistant.loader import Integration
 
-    from .api import OversightAndroidTvNotificationsApiClient
-    from .coordinator import OversightAndroidTvNotificationsDataUpdateCoordinator
+    from .api import OversightApiClient
+    from .coordinator import OversightDataUpdateCoordinator
 
 
-type OversightAndroidTvNotificationsConfigEntry = ConfigEntry[OversightAndroidTvNotificationsData]
+type OversightConfigEntry = ConfigEntry[OversightData]
 
 
 @dataclass
-class OversightAndroidTvNotificationsData:
-    """Data for the Oversight Android TV Notifications integration."""
+class OversightData:
+    """Runtime data for the OverSight integration."""
 
-    client: OversightAndroidTvNotificationsApiClient
-    coordinator: OversightAndroidTvNotificationsDataUpdateCoordinator
-    integration: Integration
+    client: OversightApiClient
+    coordinator: OversightDataUpdateCoordinator

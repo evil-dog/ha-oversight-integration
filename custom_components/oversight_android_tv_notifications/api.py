@@ -1,4 +1,4 @@
-"""Sample API Client."""
+"""API client for OverSight Android TV."""
 
 from __future__ import annotations
 
@@ -9,60 +9,83 @@ import aiohttp
 import async_timeout
 
 
-class OversightAndroidTvNotificationsApiClientError(Exception):
+class OversightApiClientError(Exception):
     """Exception to indicate a general API error."""
 
 
-class OversightAndroidTvNotificationsApiClientCommunicationError(
-    OversightAndroidTvNotificationsApiClientError,
-):
+class OversightApiClientCommunicationError(OversightApiClientError):
     """Exception to indicate a communication error."""
 
 
-class OversightAndroidTvNotificationsApiClientAuthenticationError(
-    OversightAndroidTvNotificationsApiClientError,
-):
-    """Exception to indicate an authentication error."""
-
-
-def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
-    """Verify that the response is valid."""
-    if response.status in (401, 403):
-        msg = "Invalid credentials"
-        raise OversightAndroidTvNotificationsApiClientAuthenticationError(
-            msg,
-        )
-    response.raise_for_status()
-
-
-class OversightAndroidTvNotificationsApiClient:
-    """Sample API Client."""
+class OversightApiClient:
+    """API client for OverSight Android TV devices."""
 
     def __init__(
         self,
-        username: str,
-        password: str,
+        host: str,
+        port: int,
         session: aiohttp.ClientSession,
     ) -> None:
-        """Sample API Client."""
-        self._username = username
-        self._password = password
+        """Initialize the API client."""
+        self._host = host
+        self._port = port
         self._session = session
 
-    async def async_get_data(self) -> Any:
-        """Get data from the API."""
+    @property
+    def base_url(self) -> str:
+        """Return the base URL for the device."""
+        return f"http://{self._host}:{self._port}"
+
+    async def async_get_info(self) -> dict[str, Any]:
+        """Get device info and current state."""
+        return await self._api_wrapper("get", f"{self.base_url}/info")
+
+    async def async_set_overlay(self, **kwargs: Any) -> dict[str, Any]:
+        """Update overlay settings."""
         return await self._api_wrapper(
-            method="get",
-            url="https://jsonplaceholder.typicode.com/posts/1",
+            "post", f"{self.base_url}/set/overlay", data=kwargs
         )
 
-    async def async_set_title(self, value: str) -> Any:
-        """Get data from the API."""
+    async def async_set_notifications(self, **kwargs: Any) -> dict[str, Any]:
+        """Update notification settings."""
         return await self._api_wrapper(
-            method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"title": value},
-            headers={"Content-type": "application/json; charset=UTF-8"},
+            "post", f"{self.base_url}/set/notifications", data=kwargs
+        )
+
+    async def async_set_settings(self, **kwargs: Any) -> dict[str, Any]:
+        """Update general settings."""
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/set/settings", data=kwargs
+        )
+
+    async def async_send_notification(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Send a popup notification."""
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/notify", data=data
+        )
+
+    async def async_send_fixed_notification(
+        self, data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Send a fixed notification (badge)."""
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/notify_fixed", data=data
+        )
+
+    async def async_get_fixed_notifications(self) -> dict[str, Any]:
+        """Get active fixed notifications."""
+        return await self._api_wrapper(
+            "get", f"{self.base_url}/fixed_notifications"
+        )
+
+    async def async_screen_on(self) -> dict[str, Any]:
+        """Wake the device screen."""
+        return await self._api_wrapper("post", f"{self.base_url}/screen_on")
+
+    async def async_restart_service(self) -> dict[str, Any]:
+        """Restart the overlay service."""
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/restart_service"
         )
 
     async def _api_wrapper(
@@ -70,32 +93,32 @@ class OversightAndroidTvNotificationsApiClient:
         method: str,
         url: str,
         data: dict | None = None,
-        headers: dict | None = None,
-    ) -> Any:
-        """Get information from the API."""
+    ) -> dict[str, Any]:
+        """Wrap API calls with error handling."""
         try:
             async with async_timeout.timeout(10):
                 response = await self._session.request(
                     method=method,
                     url=url,
-                    headers=headers,
                     json=data,
                 )
-                _verify_response_or_raise(response)
-                return await response.json()
+                response.raise_for_status()
+                resp_json = await response.json()
 
+                if not resp_json.get("success", False):
+                    msg = resp_json.get("message", "Unknown API error")
+                    raise OversightApiClientError(msg)
+
+                return resp_json.get("result", {})
+
+        except OversightApiClientError:
+            raise
         except TimeoutError as exception:
-            msg = f"Timeout error fetching information - {exception}"
-            raise OversightAndroidTvNotificationsApiClientCommunicationError(
-                msg,
-            ) from exception
+            msg = f"Timeout connecting to OverSight device at {self._host}:{self._port}"
+            raise OversightApiClientCommunicationError(msg) from exception
         except (aiohttp.ClientError, socket.gaierror) as exception:
-            msg = f"Error fetching information - {exception}"
-            raise OversightAndroidTvNotificationsApiClientCommunicationError(
-                msg,
-            ) from exception
-        except Exception as exception:  # pylint: disable=broad-except
-            msg = f"Something really wrong happened! - {exception}"
-            raise OversightAndroidTvNotificationsApiClientError(
-                msg,
-            ) from exception
+            msg = f"Error communicating with OverSight device at {self._host}:{self._port} - {exception}"
+            raise OversightApiClientCommunicationError(msg) from exception
+        except Exception as exception:
+            msg = f"Unexpected error communicating with OverSight device - {exception}"
+            raise OversightApiClientError(msg) from exception

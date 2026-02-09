@@ -1,28 +1,34 @@
-"""OversightAndroidTvNotificationsEntity class."""
+"""Base entity for the OverSight Android TV integration."""
 
 from __future__ import annotations
 
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION
-from .coordinator import OversightAndroidTvNotificationsDataUpdateCoordinator
+from .const import DOMAIN
+from .coordinator import OversightDataUpdateCoordinator
 
 
-class OversightAndroidTvNotificationsEntity(CoordinatorEntity[OversightAndroidTvNotificationsDataUpdateCoordinator]):
-    """OversightAndroidTvNotificationsEntity class."""
+class OversightEntity(CoordinatorEntity[OversightDataUpdateCoordinator]):
+    """Base entity for OverSight devices."""
 
-    _attr_attribution = ATTRIBUTION
+    _attr_has_entity_name = True
 
-    def __init__(self, coordinator: OversightAndroidTvNotificationsDataUpdateCoordinator) -> None:
-        """Initialize."""
+    def __init__(
+        self,
+        coordinator: OversightDataUpdateCoordinator,
+        entity_description: EntityDescription,
+    ) -> None:
+        """Initialize the entity."""
         super().__init__(coordinator)
-        self._attr_unique_id = coordinator.config_entry.entry_id
+        self.entity_description = entity_description
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.unique_id}_{entity_description.key}"
+        )
         self._attr_device_info = DeviceInfo(
-            identifiers={
-                (
-                    coordinator.config_entry.domain,
-                    coordinator.config_entry.entry_id,
-                ),
-            },
+            identifiers={(DOMAIN, coordinator.config_entry.unique_id)},
+            name=coordinator.config_entry.title,
+            manufacturer="OverSight",
+            model="Android TV Overlay",
         )

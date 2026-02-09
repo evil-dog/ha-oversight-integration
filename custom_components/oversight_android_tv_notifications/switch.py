@@ -1,67 +1,96 @@
-"""Switch platform for oversight_android_tv_notifications."""
+"""Switch platform for OverSight Android TV."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
+from homeassistant.const import EntityCategory
 
-from .entity import OversightAndroidTvNotificationsEntity
+from .entity import OversightEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .coordinator import OversightAndroidTvNotificationsDataUpdateCoordinator
-    from .data import OversightAndroidTvNotificationsConfigEntry
+    from .data import OversightConfigEntry
 
-ENTITY_DESCRIPTIONS = (
-    SwitchEntityDescription(
-        key="oversight_android_tv_notifications",
-        name="Integration Switch",
-        icon="mdi:format-quote-close",
+
+@dataclass(frozen=True, kw_only=True)
+class OversightSwitchDescription(SwitchEntityDescription):
+    """Describe an OverSight switch entity."""
+
+    state_key: str = ""
+    api_method: str = ""
+    api_param: str = ""
+
+
+ENTITY_DESCRIPTIONS: tuple[OversightSwitchDescription, ...] = (
+    OversightSwitchDescription(
+        key="display_notifications",
+        translation_key="display_notifications",
+        entity_category=EntityCategory.CONFIG,
+        state_key="display_notifications",
+        api_method="async_set_notifications",
+        api_param="displayNotifications",
+    ),
+    OversightSwitchDescription(
+        key="display_fixed_notifications",
+        translation_key="display_fixed_notifications",
+        entity_category=EntityCategory.CONFIG,
+        state_key="display_fixed_notifications",
+        api_method="async_set_notifications",
+        api_param="displayFixedNotifications",
+    ),
+    OversightSwitchDescription(
+        key="pixel_shift",
+        translation_key="pixel_shift",
+        entity_category=EntityCategory.CONFIG,
+        state_key="pixel_shift",
+        api_method="async_set_settings",
+        api_param="pixelShift",
     ),
 )
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: OversightAndroidTvNotificationsConfigEntry,
+    hass: HomeAssistant,
+    entry: OversightConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the switch platform."""
+    """Set up OverSight switch entities."""
     async_add_entities(
-        OversightAndroidTvNotificationsSwitch(
+        OversightSwitch(
             coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
+            entity_description=description,
         )
-        for entity_description in ENTITY_DESCRIPTIONS
+        for description in ENTITY_DESCRIPTIONS
     )
 
 
-class OversightAndroidTvNotificationsSwitch(OversightAndroidTvNotificationsEntity, SwitchEntity):
-    """oversight_android_tv_notifications switch class."""
+class OversightSwitch(OversightEntity, SwitchEntity):
+    """Switch entity for an OverSight device setting."""
 
-    def __init__(
-        self,
-        coordinator: OversightAndroidTvNotificationsDataUpdateCoordinator,
-        entity_description: SwitchEntityDescription,
-    ) -> None:
-        """Initialize the switch class."""
-        super().__init__(coordinator)
-        self.entity_description = entity_description
+    entity_description: OversightSwitchDescription
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool | None:
         """Return true if the switch is on."""
-        return self.coordinator.data.get("title", "") == "foo"
+        if self.coordinator.data is None:
+            return None
+        return getattr(self.coordinator.data, self.entity_description.state_key, None)
 
-    async def async_turn_on(self, **_: Any) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
-        await self.coordinator.config_entry.runtime_data.client.async_set_title("bar")
+        client = self.coordinator.client
+        method = getattr(client, self.entity_description.api_method)
+        await method(**{self.entity_description.api_param: True})
         await self.coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **_: Any) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch."""
-        await self.coordinator.config_entry.runtime_data.client.async_set_title("foo")
+        client = self.coordinator.client
+        method = getattr(client, self.entity_description.api_method)
+        await method(**{self.entity_description.api_param: False})
         await self.coordinator.async_request_refresh()
