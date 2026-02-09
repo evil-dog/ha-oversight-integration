@@ -1,3 +1,67 @@
+send_notification:
+  name: Send notification
+  description: Send a popup notification to the device with optional extras (source, icon, image, etc.).
+  target:
+    entity:
+      integration: oversight_android_tv_notifications
+  fields:
+    message:
+      name: Message
+      description: The notification message text.
+      required: true
+      example: "Front door motion detected"
+      selector:
+        text:
+    title:
+      name: Title
+      description: Optional title displayed above the message.
+      example: "Security Alert"
+      selector:
+        text:
+    source:
+      name: Source
+      description: Source label (e.g., "Home Assistant").
+      selector:
+        text:
+    image:
+      name: Image
+      description: URL of an image to display.
+      selector:
+        text:
+    video:
+      name: Video
+      description: URL of a video to display.
+      selector:
+        text:
+    small_icon:
+      name: Small icon
+      description: MDI icon name for the small icon (e.g., "mdi:bell").
+      selector:
+        text:
+    large_icon:
+      name: Large icon
+      description: MDI icon name or URL for the large icon.
+      selector:
+        text:
+    corner:
+      name: Corner
+      description: Override which corner the notification appears in.
+      selector:
+        select:
+          options:
+            - "top_start"
+            - "top_end"
+            - "bottom_start"
+            - "bottom_end"
+    duration:
+      name: Duration
+      description: How long to show the notification (seconds).
+      selector:
+        number:
+          min: 1
+          max: 60
+          mode: box
+
 send_fixed_notification:
   name: Send fixed notification
   description: Create or update a fixed notification badge on the device.

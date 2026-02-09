@@ -130,6 +130,25 @@ def _get_client_from_call(
 def _register_services(hass: HomeAssistant) -> None:
     """Register custom services for OverSight."""
 
+    async def handle_send_notification(call: ServiceCall) -> None:
+        """Handle the send_notification service call."""
+        client = _get_client_from_call(hass, call)
+        data: dict[str, Any] = {"message": call.data["message"]}
+        for field in (
+            "title",
+            "source",
+            "image",
+            "video",
+            "small_icon",
+            "large_icon",
+            "corner",
+            "duration",
+        ):
+            if field in call.data:
+                camel = _to_camel_case(field)
+                data[camel] = call.data[field]
+        await client.async_send_notification(data)
+
     async def handle_send_fixed_notification(call: ServiceCall) -> None:
         """Handle the send_fixed_notification service call."""
         client = _get_client_from_call(hass, call)
@@ -165,6 +184,26 @@ def _register_services(hass: HomeAssistant) -> None:
         """Handle the screen_on service call."""
         client = _get_client_from_call(hass, call)
         await client.async_screen_on()
+
+    hass.services.async_register(
+        DOMAIN,
+        "send_notification",
+        handle_send_notification,
+        schema=vol.Schema(
+            {
+                vol.Required("message"): str,
+                vol.Optional("title"): str,
+                vol.Optional("source"): str,
+                vol.Optional("image"): str,
+                vol.Optional("video"): str,
+                vol.Optional("small_icon"): str,
+                vol.Optional("large_icon"): str,
+                vol.Optional("corner"): str,
+                vol.Optional("duration"): int,
+            },
+            extra=vol.ALLOW_EXTRA,
+        ),
+    )
 
     hass.services.async_register(
         DOMAIN,

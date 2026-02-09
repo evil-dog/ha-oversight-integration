@@ -62,6 +62,48 @@
         }
     },
     "services": {
+        "send_notification": {
+            "name": "Send notification",
+            "description": "Send a popup notification to the device.",
+            "fields": {
+                "message": {
+                    "name": "Message",
+                    "description": "The notification message text."
+                },
+                "title": {
+                    "name": "Title",
+                    "description": "Optional title displayed above the message."
+                },
+                "source": {
+                    "name": "Source",
+                    "description": "Source label."
+                },
+                "image": {
+                    "name": "Image",
+                    "description": "URL of an image to display."
+                },
+                "video": {
+                    "name": "Video",
+                    "description": "URL of a video to display."
+                },
+                "small_icon": {
+                    "name": "Small icon",
+                    "description": "MDI icon name for the small icon."
+                },
+                "large_icon": {
+                    "name": "Large icon",
+                    "description": "MDI icon name or URL for the large icon."
+                },
+                "corner": {
+                    "name": "Corner",
+                    "description": "Override which corner the notification appears in."
+                },
+                "duration": {
+                    "name": "Duration",
+                    "description": "How long to show the notification (seconds)."
+                }
+            }
+        },
         "send_fixed_notification": {
             "name": "Send fixed notification",
             "description": "Create or update a fixed notification badge on the device.",
