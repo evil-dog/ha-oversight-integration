@@ -17,7 +17,7 @@ from .api import (
     OversightApiClientCommunicationError,
     OversightApiClientError,
 )
-from .const import CONF_HOST, CONF_PORT, DEFAULT_PORT, DOMAIN, LOGGER
+from .const import CONF_HOST, CONF_PORT, DEFAULT_PORT, DOMAIN
 
 
 class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -101,7 +101,9 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Extract device info from mDNS TXT records
         properties = discovery_info.properties or {}
         device_id = properties.get("deviceId", "")
-        device_name = properties.get("deviceName", discovery_info.name or "OverSight Device")
+        device_name = properties.get(
+            "deviceName", discovery_info.name or "OverSight Device"
+        )
 
         if not device_id:
             # Try to get deviceId from the API if not in TXT records
@@ -118,9 +120,7 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="unknown")
 
         await self.async_set_unique_id(device_id)
-        self._abort_if_unique_id_configured(
-            updates={CONF_HOST: host, CONF_PORT: port}
-        )
+        self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
 
         self._discovered_host = host
         self._discovered_port = port
@@ -149,9 +149,7 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             description_placeholders={"name": self._discovered_name},
         )
 
-    async def _test_connection(
-        self, host: str, port: int
-    ) -> dict[str, Any]:
+    async def _test_connection(self, host: str, port: int) -> dict[str, Any]:
         """Test connection to an OverSight device and return info."""
         client = OversightApiClient(
             host=host,

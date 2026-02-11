@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import timedelta
-from logging import Logger
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import OversightApiClient, OversightApiClientError
 from .const import DEFAULT_SCAN_INTERVAL
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from homeassistant.core import HomeAssistant
 
 
 @dataclass

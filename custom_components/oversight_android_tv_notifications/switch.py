@@ -55,7 +55,7 @@ ENTITY_DESCRIPTIONS: tuple[OversightSwitchDescription, ...] = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    hass: HomeAssistant,  # noqa: ARG001
     entry: OversightConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -81,14 +81,14 @@ class OversightSwitch(OversightEntity, SwitchEntity):
             return None
         return getattr(self.coordinator.data, self.entity_description.state_key, None)
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs: Any) -> None:  # noqa: ARG002
         """Turn on the switch."""
         client = self.coordinator.client
         method = getattr(client, self.entity_description.api_method)
         await method(**{self.entity_description.api_param: True})
         await self.coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs: Any) -> None:  # noqa: ARG002
         """Turn off the switch."""
         client = self.coordinator.client
         method = getattr(client, self.entity_description.api_method)

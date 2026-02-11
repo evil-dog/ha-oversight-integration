@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.notify import NotifyEntity, NotifyEntityFeature
+from homeassistant.components.notify import NotifyEntity
 
 from .entity import OversightEntity
-from .coordinator import OversightDataUpdateCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -19,7 +18,7 @@ from homeassistant.helpers.entity import EntityDescription
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    hass: HomeAssistant,  # noqa: ARG001
     entry: OversightConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -40,7 +39,9 @@ async def async_setup_entry(
 class OversightNotifyEntity(OversightEntity, NotifyEntity):
     """Notify entity for sending popup notifications to an OverSight device."""
 
-    async def async_send_message(self, message: str, title: str | None = None, **kwargs: Any) -> None:
+    async def async_send_message(
+        self, message: str, title: str | None = None, **kwargs: Any
+    ) -> None:
         """Send a popup notification to the device."""
         data: dict[str, Any] = {"message": message}
         if title:

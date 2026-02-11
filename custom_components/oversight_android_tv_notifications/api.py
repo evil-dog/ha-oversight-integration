@@ -61,9 +61,7 @@ class OversightApiClient:
 
     async def async_send_notification(self, data: dict[str, Any]) -> dict[str, Any]:
         """Send a popup notification."""
-        return await self._api_wrapper(
-            "post", f"{self.base_url}/notify", data=data
-        )
+        return await self._api_wrapper("post", f"{self.base_url}/notify", data=data)
 
     async def async_send_fixed_notification(
         self, data: dict[str, Any]
@@ -75,9 +73,7 @@ class OversightApiClient:
 
     async def async_get_fixed_notifications(self) -> dict[str, Any]:
         """Get active fixed notifications."""
-        return await self._api_wrapper(
-            "get", f"{self.base_url}/fixed_notifications"
-        )
+        return await self._api_wrapper("get", f"{self.base_url}/fixed_notifications")
 
     async def async_screen_on(self) -> dict[str, Any]:
         """Wake the device screen."""
@@ -85,9 +81,7 @@ class OversightApiClient:
 
     async def async_restart_service(self) -> dict[str, Any]:
         """Restart the overlay service."""
-        return await self._api_wrapper(
-            "post", f"{self.base_url}/restart_service"
-        )
+        return await self._api_wrapper("post", f"{self.base_url}/restart_service")
 
     async def _api_wrapper(
         self,
@@ -108,23 +102,26 @@ class OversightApiClient:
                     )
                     response.raise_for_status()
                     resp_json = await response.json()
-
-                    if not resp_json.get("success", False):
-                        msg = resp_json.get("message", "Unknown API error")
-                        raise OversightApiClientError(msg)
-
-                    return resp_json.get("result", {})
-
-            except OversightApiClientError:
-                raise
             except (TimeoutError, aiohttp.ClientError, socket.gaierror) as exception:
                 last_exception = exception
                 if attempt < retries:
                     await asyncio.sleep(1)
                     continue
             except Exception as exception:
-                msg = f"Unexpected error communicating with OverSight device - {exception}"
+                msg = (
+                    "Unexpected error communicating with OverSight device - "
+                    f"{exception}"
+                )
                 raise OversightApiClientError(msg) from exception
+            else:
+                if not resp_json.get("success", False):
+                    msg = resp_json.get("message", "Unknown API error")
+                    raise OversightApiClientError(msg)
 
-        msg = f"Error communicating with OverSight device at {self._host}:{self._port} - {last_exception}"
+                return resp_json.get("result", {})
+
+        msg = (
+            "Error communicating with OverSight device at "
+            f"{self._host}:{self._port} - {last_exception}"
+        )
         raise OversightApiClientCommunicationError(msg) from last_exception

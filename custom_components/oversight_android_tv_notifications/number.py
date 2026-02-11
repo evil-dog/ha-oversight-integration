@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,
     NumberMode,
 )
-from homeassistant.const import EntityCategory, UnitOfTime, PERCENTAGE
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTime
 
-from .coordinator import OversightDeviceState
 from .entity import OversightEntity
 
 if TYPE_CHECKING:
@@ -75,7 +74,7 @@ ENTITY_DESCRIPTIONS: tuple[OversightNumberDescription, ...] = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    hass: HomeAssistant,  # noqa: ARG001
     entry: OversightConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:

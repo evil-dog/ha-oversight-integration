@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 from homeassistant.const import Platform
-from homeassistant.core import ServiceCall, SupportsResponse
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -16,7 +15,7 @@ from .coordinator import OversightDataUpdateCoordinator
 from .data import OversightData
 
 if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
+    from homeassistant.core import HomeAssistant, ServiceCall
 
     from .data import OversightConfigEntry
 
@@ -103,9 +102,7 @@ def _get_client_for_entity(
     return data.client
 
 
-def _get_client_from_call(
-    hass: HomeAssistant, call: ServiceCall
-) -> OversightApiClient:
+def _get_client_from_call(hass: HomeAssistant, call: ServiceCall) -> OversightApiClient:
     """Get a client from a service call's entity target."""
     entity_ids = call.data.get("entity_id", [])
     if isinstance(entity_ids, str):
