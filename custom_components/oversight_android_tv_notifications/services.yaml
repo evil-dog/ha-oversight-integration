@@ -35,7 +35,12 @@ send_notification:
         text:
     small_icon:
       name: Small icon
-      description: MDI icon name for the small icon (e.g., "mdi:bell").
+      description: MDI icon name for the small icon (e.g., "mdi:bell"). Shown as a dark circle badge — standalone if no large_icon, or overlaid at the top-right of the large icon otherwise.
+      selector:
+        text:
+    small_icon_color:
+      name: Small icon color
+      description: Tint color for the small icon (hex, e.g., "#FF5733").
       selector:
         text:
     large_icon:
@@ -113,17 +118,17 @@ send_fixed_notification:
         select:
           options:
             - "circle"
-            - "square"
             - "rounded"
+            - "rectangular"
     size:
       name: Size
       description: Size of the badge.
       selector:
         select:
           options:
-            - "SMALL"
-            - "NORMAL"
-            - "LARGE"
+            - "small"
+            - "normal"
+            - "big"
     expiration:
       name: Expiration
       description: When the badge expires (e.g., "30m", "2h", "1d", or ISO timestamp).

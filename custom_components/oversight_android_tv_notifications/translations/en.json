@@ -31,6 +31,9 @@
             },
             "notification_duration": {
                 "name": "Notification duration"
+            },
+            "fixed_notifications_visibility": {
+                "name": "Fixed notifications visibility"
             }
         },
         "select": {
@@ -88,7 +91,11 @@
                 },
                 "small_icon": {
                     "name": "Small icon",
-                    "description": "MDI icon name for the small icon."
+                    "description": "MDI icon name for the small icon (circle badge)."
+                },
+                "small_icon_color": {
+                    "name": "Small icon color",
+                    "description": "Tint color for the small icon (hex, e.g. #FF5733)."
                 },
                 "large_icon": {
                     "name": "Large icon",

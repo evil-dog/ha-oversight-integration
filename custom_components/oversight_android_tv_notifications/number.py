@@ -70,6 +70,19 @@ ENTITY_DESCRIPTIONS: tuple[OversightNumberDescription, ...] = (
         api_method="async_set_notifications",
         api_param="notificationDuration",
     ),
+    OversightNumberDescription(
+        key="fixed_notifications_visibility",
+        translation_key="fixed_notifications_visibility",
+        native_min_value=0,
+        native_max_value=100,
+        native_step=5,
+        native_unit_of_measurement=PERCENTAGE,
+        mode=NumberMode.SLIDER,
+        entity_category=EntityCategory.CONFIG,
+        state_key="fixed_notifications_visibility",
+        api_method="async_set_notifications",
+        api_param="fixedNotificationsVisibility",
+    ),
 )
 
 
