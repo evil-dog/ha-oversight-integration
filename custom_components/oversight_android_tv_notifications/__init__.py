@@ -152,6 +152,7 @@ def _register_services(hass: HomeAssistant) -> None:
         client = _get_client_from_call(hass, call)
         data: dict[str, Any] = {"id": call.data["id"]}
         for field in (
+            "visible",
             "icon",
             "text",
             "icon_color",
@@ -211,6 +212,7 @@ def _register_services(hass: HomeAssistant) -> None:
         schema=vol.Schema(
             {
                 vol.Required("id"): str,
+                vol.Optional("visible"): bool,
                 vol.Optional("icon"): str,
                 vol.Optional("text"): str,
                 vol.Optional("icon_color"): str,

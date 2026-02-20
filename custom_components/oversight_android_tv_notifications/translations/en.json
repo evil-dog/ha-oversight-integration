@@ -119,6 +119,10 @@
                     "name": "ID",
                     "description": "Unique identifier for the fixed notification."
                 },
+                "visible": {
+                    "name": "Visible",
+                    "description": "Show or hide the badge without removing it."
+                },
                 "icon": {
                     "name": "Icon",
                     "description": "Icon name or URL."

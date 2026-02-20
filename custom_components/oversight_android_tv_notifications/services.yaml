@@ -81,6 +81,11 @@ send_fixed_notification:
       example: "weather_badge"
       selector:
         text:
+    visible:
+      name: Visible
+      description: Show or hide the badge. Set to false to hide without removing it.
+      selector:
+        boolean:
     icon:
       name: Icon
       description: Material Design icon name (e.g., "mdi:weather-sunny") or URL to an image.
