@@ -54,6 +54,7 @@ class OversightNotifyEntity(OversightEntity, NotifyEntity):
             "image",
             "video",
             "smallIcon",
+            "smallIconColor",
             "largeIcon",
             "corner",
             "duration",

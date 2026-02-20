@@ -40,7 +40,7 @@ send_notification:
         text:
     small_icon_color:
       name: Small icon color
-      description: Tint color for the small icon (hex, e.g., "#FF5733").
+      description: "Tint color for the small icon. Use quoted hex in YAML (e.g., \"#FF5733\")."
       selector:
         text:
     large_icon:
@@ -93,22 +93,22 @@ send_fixed_notification:
         text:
     icon_color:
       name: Icon color
-      description: Color for the icon (hex, e.g., "#FF5722").
+      description: "Color for the icon. Use quoted hex in YAML (e.g., \"#FF5722\")."
       selector:
         text:
     message_color:
       name: Text color
-      description: Color for the text (hex, e.g., "#FFFFFF").
+      description: "Color for the badge text. Use quoted hex in YAML (e.g., \"#FFFFFF\")."
       selector:
         text:
     background_color:
       name: Background color
-      description: Background color for the badge (hex, e.g., "#333333").
+      description: "Background color for the badge. Use quoted hex in YAML (e.g., \"#CC333333\")."
       selector:
         text:
     border_color:
       name: Border color
-      description: Border color for the badge (hex).
+      description: "Border color for the badge. Use quoted hex in YAML (e.g., \"#FFD700\")."
       selector:
         text:
     shape:
