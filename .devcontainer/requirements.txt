@@ -3,3 +3,4 @@ homeassistant==2026.10.4
 pip>=26.2.1
 ruff==0.17.2
 cookiecutter==2.7.1
+pytest-homeassistant-custom-component==0.13.375

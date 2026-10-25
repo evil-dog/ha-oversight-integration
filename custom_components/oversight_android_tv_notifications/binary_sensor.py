@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
     from .data import OversightConfigEntry
 
+PARALLEL_UPDATES = 0
+
 ENTITY_DESCRIPTIONS = (
     BinarySensorEntityDescription(
         key="connectivity",

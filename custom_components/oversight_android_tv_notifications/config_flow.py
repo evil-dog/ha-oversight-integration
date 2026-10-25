@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers import selector
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 if TYPE_CHECKING:
     from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
@@ -17,7 +18,7 @@ from .api import (
     OversightApiClientCommunicationError,
     OversightApiClientError,
 )
-from .const import CONF_HOST, CONF_PORT, DEFAULT_PORT, DOMAIN
+from .const import DEFAULT_DEVICE_NAME, DEFAULT_PORT, DOMAIN
 
 
 class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -30,7 +31,6 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._discovered_host: str | None = None
         self._discovered_port: int | None = None
         self._discovered_name: str | None = None
-        self._discovered_device_id: str | None = None
 
     async def async_step_user(
         self,
@@ -57,7 +57,7 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self._abort_if_unique_id_configured()
                     device_name = (info.get("settings") or {}).get("deviceName")
                     return self.async_create_entry(
-                        title=device_name or "OverSight Device",
+                        title=device_name or DEFAULT_DEVICE_NAME,
                         data={
                             CONF_HOST: host,
                             CONF_PORT: int(port),
@@ -102,8 +102,10 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Extract device info from mDNS TXT records
         properties = discovery_info.properties or {}
         device_id = properties.get("deviceId", "")
-        device_name = properties.get(
-            "deviceName", discovery_info.name or "OverSight Device"
+        # The service name is the device name, e.g. "Living Room._tvoverlay._tcp.local."
+        device_name = properties.get("deviceName") or (
+            discovery_info.name.removesuffix(f".{discovery_info.type}")
+            or DEFAULT_DEVICE_NAME
         )
 
         if not device_id:
@@ -118,7 +120,7 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="connection")
 
         if not device_id:
-            return self.async_abort(reason="unknown")
+            return self.async_abort(reason="missing_device_id")
 
         await self.async_set_unique_id(device_id)
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
@@ -126,7 +128,6 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._discovered_host = host
         self._discovered_port = port
         self._discovered_name = device_name
-        self._discovered_device_id = device_id
 
         self.context["title_placeholders"] = {"name": device_name}
         return await self.async_step_zeroconf_confirm()
@@ -138,13 +139,14 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Confirm zeroconf discovery."""
         if user_input is not None:
             return self.async_create_entry(
-                title=self._discovered_name or "OverSight Device",
+                title=self._discovered_name or DEFAULT_DEVICE_NAME,
                 data={
                     CONF_HOST: self._discovered_host,
                     CONF_PORT: self._discovered_port,
                 },
             )
 
+        self._set_confirm_only()
         return self.async_show_form(
             step_id="zeroconf_confirm",
             description_placeholders={"name": self._discovered_name},
@@ -155,6 +157,6 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         client = OversightApiClient(
             host=host,
             port=int(port),
-            session=async_create_clientsession(self.hass),
+            session=async_get_clientsession(self.hass),
         )
         return await client.async_get_info()

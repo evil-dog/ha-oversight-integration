@@ -1,188 +1,192 @@
 send_notification:
-  name: Send notification
-  description: Send a popup notification to the device with optional extras (source, icon, image, etc.).
   target:
     entity:
       integration: oversight_android_tv_notifications
       domain: notify
   fields:
     message:
-      name: Message
-      description: The notification message text.
       required: true
       example: "Front door motion detected"
       selector:
         text:
     title:
-      name: Title
-      description: Optional title displayed above the message.
       example: "Security Alert"
       selector:
         text:
     source:
-      name: Source
-      description: Source label (e.g., "Home Assistant").
+      example: "Home Assistant"
+      selector:
+        text:
+    id:
+      example: "front_door"
       selector:
         text:
     image:
-      name: Image
-      description: URL of an image to display.
       selector:
         text:
     video:
-      name: Video
-      description: URL of a video to display.
       selector:
         text:
     small_icon:
-      name: Small icon
-      description: MDI icon name for the small icon (e.g., "mdi:bell"). Shown as a dark circle badge — standalone if no large_icon, or overlaid at the top-right of the large icon otherwise.
+      example: "mdi:bell"
       selector:
         text:
     small_icon_color:
-      name: Small icon color
-      description: "Tint color for the small icon. Use quoted hex in YAML (e.g., \"#FF5733\")."
+      example: "#FF5733"
       selector:
         text:
     large_icon:
-      name: Large icon
-      description: MDI icon name or URL for the large icon.
+      example: "mdi:home"
       selector:
         text:
     corner:
-      name: Corner
-      description: Override which corner the notification appears in.
       selector:
         select:
+          translation_key: corner
           options:
             - "top_start"
             - "top_end"
             - "bottom_start"
             - "bottom_end"
     duration:
-      name: Duration
-      description: How long to show the notification (seconds).
       selector:
         number:
           min: 1
           max: 60
+          unit_of_measurement: s
           mode: box
+    layout:
+      selector:
+        object:
 
 send_fixed_notification:
-  name: Send fixed notification
-  description: Create or update a fixed notification badge on the device.
   target:
     entity:
       integration: oversight_android_tv_notifications
       domain: notify
   fields:
     id:
-      name: ID
-      description: Unique identifier for the fixed notification. Use the same ID to update an existing badge.
       required: true
       example: "weather_badge"
       selector:
         text:
     visible:
-      name: Visible
-      description: Show or hide the badge. Set to false to hide without removing it.
       selector:
         boolean:
     icon:
-      name: Icon
-      description: Material Design icon name (e.g., "mdi:weather-sunny") or URL to an image.
+      example: "mdi:weather-sunny"
       selector:
         text:
     text:
-      name: Text
-      description: Text to display on the badge.
+      example: "72°F"
       selector:
         text:
     icon_color:
-      name: Icon color
-      description: "Color for the icon. Use quoted hex in YAML (e.g., \"#FF5722\")."
+      example: "#FF5722"
       selector:
         text:
     message_color:
-      name: Text color
-      description: "Color for the badge text. Use quoted hex in YAML (e.g., \"#FFFFFF\")."
+      example: "#FFFFFF"
       selector:
         text:
     background_color:
-      name: Background color
-      description: "Background color for the badge. Use quoted hex in YAML (e.g., \"#CC333333\")."
+      example: "#CC333333"
       selector:
         text:
     border_color:
-      name: Border color
-      description: "Border color for the badge. Use quoted hex in YAML (e.g., \"#FFD700\")."
+      example: "#FFD700"
       selector:
         text:
     shape:
-      name: Shape
-      description: Shape of the badge.
       selector:
         select:
+          translation_key: shape
           options:
             - "circle"
             - "rounded"
             - "rectangular"
     size:
-      name: Size
-      description: Size of the badge.
       selector:
         select:
+          translation_key: size
           options:
             - "small"
             - "normal"
             - "big"
     expiration:
-      name: Expiration
-      description: When the badge expires (e.g., "30m", "2h", "1d", or ISO timestamp).
+      example: "1h30m"
       selector:
         text:
     show_duration:
-      name: Show duration
-      description: Seconds to show before collapsing (collapsible mode).
       selector:
         number:
           min: 1
           max: 3600
+          unit_of_measurement: s
           mode: box
     collapse_duration:
-      name: Collapse duration
-      description: Seconds to stay collapsed before expanding again.
       selector:
         number:
           min: 1
           max: 3600
+          unit_of_measurement: s
           mode: box
     repeat_expand:
-      name: Repeat expand
-      description: Whether to repeat the expand/collapse cycle.
       selector:
         boolean:
 
 remove_fixed_notification:
-  name: Remove fixed notification
-  description: Remove a fixed notification badge from the device.
   target:
     entity:
       integration: oversight_android_tv_notifications
       domain: notify
   fields:
     id:
-      name: ID
-      description: The ID of the fixed notification to remove.
       required: true
       example: "weather_badge"
       selector:
         text:
 
 screen_on:
-  name: Screen on
-  description: Wake the device screen.
   target:
     entity:
       integration: oversight_android_tv_notifications
       domain: notify
+
+set_clock_appearance:
+  target:
+    entity:
+      integration: oversight_android_tv_notifications
+      domain: notify
+  fields:
+    font_size:
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box
+    font_weight:
+      selector:
+        select:
+          translation_key: font_weight
+          options:
+            - "thin"
+            - "extralight"
+            - "light"
+            - "normal"
+            - "medium"
+            - "semibold"
+            - "bold"
+            - "extrabold"
+            - "black"
+    color:
+      example: "#FFFFFF"
+      selector:
+        text:
+    display_shadow:
+      selector:
+        boolean:
+    background_color:
+      example: "#000000"
+      selector:
+        text:

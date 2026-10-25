@@ -6,6 +6,10 @@
                 "data": {
                     "host": "Host",
                     "port": "Port"
+                },
+                "data_description": {
+                    "host": "IP address or hostname of the Android TV device running OverSight.",
+                    "port": "Port of the OverSight API, shown in the app's settings (default 5001)."
                 }
             },
             "zeroconf_confirm": {
@@ -19,10 +23,21 @@
         },
         "abort": {
             "already_configured": "This device is already configured.",
-            "connection": "Unable to connect to the discovered device."
+            "already_in_progress": "Setup of this device is already in progress.",
+            "connection": "Unable to connect to the discovered device.",
+            "missing_device_id": "The discovered device did not report a device ID.",
+            "unknown": "Unknown error occurred."
         }
     },
     "entity": {
+        "button": {
+            "screen_on": {
+                "name": "Screen on"
+            },
+            "restart_service": {
+                "name": "Restart overlay service"
+            }
+        },
         "number": {
             "overlay_visibility": {
                 "name": "Overlay visibility"
@@ -46,6 +61,9 @@
                     "bottom_start": "Bottom left",
                     "bottom_end": "Bottom right"
                 }
+            },
+            "notification_layout": {
+                "name": "Notification layout"
             }
         },
         "notify": {
@@ -62,13 +80,58 @@
             },
             "pixel_shift": {
                 "name": "Pixel shift"
+            },
+            "display_debug": {
+                "name": "Display debug info"
+            }
+        },
+        "text": {
+            "device_name": {
+                "name": "Device name"
+            }
+        }
+    },
+    "selector": {
+        "corner": {
+            "options": {
+                "top_start": "Top left",
+                "top_end": "Top right",
+                "bottom_start": "Bottom left",
+                "bottom_end": "Bottom right"
+            }
+        },
+        "shape": {
+            "options": {
+                "circle": "Circle",
+                "rounded": "Rounded",
+                "rectangular": "Rectangular"
+            }
+        },
+        "size": {
+            "options": {
+                "small": "Small",
+                "normal": "Normal",
+                "big": "Big"
+            }
+        },
+        "font_weight": {
+            "options": {
+                "thin": "Thin",
+                "extralight": "Extra light",
+                "light": "Light",
+                "normal": "Normal",
+                "medium": "Medium",
+                "semibold": "Semibold",
+                "bold": "Bold",
+                "extrabold": "Extra bold",
+                "black": "Black"
             }
         }
     },
     "services": {
         "send_notification": {
             "name": "Send notification",
-            "description": "Send a popup notification to the device.",
+            "description": "Shows a popup notification on the device, with optional icons, image, video and placement.",
             "fields": {
                 "message": {
                     "name": "Message",
@@ -76,11 +139,15 @@
                 },
                 "title": {
                     "name": "Title",
-                    "description": "Optional title displayed above the message."
+                    "description": "Title displayed above the message."
                 },
                 "source": {
                     "name": "Source",
-                    "description": "Source label."
+                    "description": "Source label, for example \"Home Assistant\"."
+                },
+                "id": {
+                    "name": "ID",
+                    "description": "Sending a notification with the same ID and source as the one on screen replaces it instead of queueing a new one."
                 },
                 "image": {
                     "name": "Image",
@@ -88,37 +155,41 @@
                 },
                 "video": {
                     "name": "Video",
-                    "description": "URL of a video to display."
+                    "description": "URL of a video to play: RTSP, HLS, MP4 and other common formats."
                 },
                 "small_icon": {
                     "name": "Small icon",
-                    "description": "MDI icon name for the small icon (circle badge)."
+                    "description": "MDI icon name, for example \"mdi:bell\". Shown as a dark circle badge: on its own if there is no large icon, otherwise at the top right of the large icon."
                 },
                 "small_icon_color": {
                     "name": "Small icon color",
-                    "description": "Tint color for the small icon (hex, e.g. #FF5733)."
+                    "description": "Tint color for the small icon. Quote hex values in YAML, for example \"#FF5733\"."
                 },
                 "large_icon": {
                     "name": "Large icon",
-                    "description": "MDI icon name or URL for the large icon."
+                    "description": "MDI icon name or image URL for the main icon."
                 },
                 "corner": {
                     "name": "Corner",
-                    "description": "Override which corner the notification appears in."
+                    "description": "Corner to show this notification in, overriding the hot corner setting."
                 },
                 "duration": {
                     "name": "Duration",
-                    "description": "How long to show the notification (seconds)."
+                    "description": "How long to show the notification, overriding the notification duration setting."
+                },
+                "layout": {
+                    "name": "Layout",
+                    "description": "A complete layout object to use for this notification only. See the OverSight app documentation for the layout fields."
                 }
             }
         },
         "send_fixed_notification": {
             "name": "Send fixed notification",
-            "description": "Create or update a fixed notification badge on the device.",
+            "description": "Creates or updates a fixed notification badge on the device. When updating, fields you leave out keep their current values.",
             "fields": {
                 "id": {
                     "name": "ID",
-                    "description": "Unique identifier for the fixed notification."
+                    "description": "Identifier of the badge. Use the same ID to update an existing badge."
                 },
                 "visible": {
                     "name": "Visible",
@@ -126,7 +197,7 @@
                 },
                 "icon": {
                     "name": "Icon",
-                    "description": "Icon name or URL."
+                    "description": "MDI icon name, for example \"mdi:weather-sunny\", or an image URL."
                 },
                 "text": {
                     "name": "Text",
@@ -134,19 +205,19 @@
                 },
                 "icon_color": {
                     "name": "Icon color",
-                    "description": "Color for the icon (hex)."
+                    "description": "Color for the icon. Quote hex values in YAML, for example \"#FF5722\"."
                 },
                 "message_color": {
                     "name": "Text color",
-                    "description": "Color for the text (hex)."
+                    "description": "Color for the badge text. Quote hex values in YAML, for example \"#FFFFFF\"."
                 },
                 "background_color": {
                     "name": "Background color",
-                    "description": "Background color for the badge (hex)."
+                    "description": "Background color for the badge, optionally with alpha. Quote hex values in YAML, for example \"#CC333333\"."
                 },
                 "border_color": {
                     "name": "Border color",
-                    "description": "Border color for the badge (hex)."
+                    "description": "Border color for the badge. Quote hex values in YAML, for example \"#FFD700\"."
                 },
                 "shape": {
                     "name": "Shape",
@@ -158,35 +229,61 @@
                 },
                 "expiration": {
                     "name": "Expiration",
-                    "description": "When the badge expires."
+                    "description": "When the badge is removed. Either a duration such as \"30m\", \"2h\" or \"1d12h\" (units y, w, d, h, m, s), a number of seconds, or a Unix timestamp in seconds or milliseconds."
                 },
                 "show_duration": {
                     "name": "Show duration",
-                    "description": "Seconds to show before collapsing."
+                    "description": "Seconds to show the text before collapsing to the icon only."
                 },
                 "collapse_duration": {
                     "name": "Collapse duration",
-                    "description": "Seconds to stay collapsed."
+                    "description": "Seconds to stay collapsed before expanding again. Needs repeat expand."
                 },
                 "repeat_expand": {
                     "name": "Repeat expand",
-                    "description": "Whether to repeat the expand/collapse cycle."
+                    "description": "Keep cycling between expanded and collapsed."
                 }
             }
         },
         "remove_fixed_notification": {
             "name": "Remove fixed notification",
-            "description": "Remove a fixed notification badge from the device.",
+            "description": "Removes a fixed notification badge from the device.",
             "fields": {
                 "id": {
                     "name": "ID",
-                    "description": "The ID of the fixed notification to remove."
+                    "description": "The ID of the badge to remove."
                 }
             }
         },
         "screen_on": {
             "name": "Screen on",
-            "description": "Wake the device screen."
+            "description": "Wakes the device screen."
+        },
+        "set_clock_appearance": {
+            "name": "Set clock appearance",
+            "description": "Changes how the clock overlay looks. Fields you leave out keep their current values.",
+            "fields": {
+                "font_size": {
+                    "name": "Font size",
+                    "description": "Clock font size."
+                },
+                "font_weight": {
+                    "name": "Font weight",
+                    "description": "Clock font weight."
+                },
+                "color": {
+                    "name": "Color",
+                    "description": "Clock text color. Quote hex values in YAML, for example \"#FFFFFF\"."
+                },
+                "display_shadow": {
+                    "name": "Display shadow",
+                    "description": "Draw a shadow behind the clock text."
+                },
+                "background_color": {
+                    "name": "Background color",
+                    "description": "Clock background color, optionally with alpha. Quote hex values in YAML, for example \"#80000000\"."
+                }
+            }
         }
     }
 }

@@ -136,6 +136,34 @@ target:
   entity_id: switch.oversight_android_tv_pixel_shift
 ```
 
+### Switch notification layout
+Options come from the device, including custom layouts.
+```yaml
+action: select.select_option
+target:
+  entity_id: select.oversight_android_tv_notification_layout
+data:
+  option: Minimalist
+```
+
+### Rename the device
+The new name is also advertised over mDNS.
+```yaml
+action: text.set_value
+target:
+  entity_id: text.oversight_android_tv_device_name
+data:
+  value: Living Room TV
+```
+
+### Show debug info
+The switch is disabled by default; enable it under the device's entities first.
+```yaml
+action: switch.turn_on
+target:
+  entity_id: switch.oversight_android_tv_display_debug_info
+```
+
 ---
 
 ## Popup Notifications — Custom Service
@@ -193,22 +221,36 @@ data:
 
 ---
 
+## Popup Notifications — Replace in Place
+
+### Update the popup on screen instead of queueing another
+Send twice with the same `id` and `source`; the second replaces the first while it is showing.
+```yaml
+action: oversight_android_tv_notifications.send_notification
+target:
+  entity_id: notify.oversight_android_tv
+data:
+  id: washer
+  source: Laundry
+  title: Washer
+  message: 10 minutes left
+```
+
+---
+
 ## Popup Notifications — Notify Entity
 
-### Via notify entity (camelCase extra fields)
+### Via notify entity (message and title only)
 ```yaml
-action: notify.oversight_android_tv
+action: notify.send_message
+target:
+  entity_id: notify.oversight_android_tv
 data:
   message: Hello via notify entity
   title: Test
-  data:
-    source: HA Notify
-    largeIcon: mdi:home
-    smallIcon: mdi:bell
-    smallIconColor: "#2196F3"
-    corner: top_end
-    duration: 8
 ```
+
+`notify.send_message` only takes a message and title. Use `oversight_android_tv_notifications.send_notification` for icons, image, video, corner and duration.
 
 ---
 
@@ -269,7 +311,7 @@ data:
   expiration: 30m
 ```
 
-Other expiration formats: `30s`, `2h`, `1d`
+Other expiration formats: `30s`, `2h`, `1d12h` (units `y w d h m s`), a number of seconds such as `600`, or a Unix timestamp in seconds or milliseconds
 
 ### Badge with collapsible animation (shows text for 5s, collapses, re-expands every 15s)
 ```yaml
@@ -348,6 +390,50 @@ data:
 action: oversight_android_tv_notifications.screen_on
 target:
   entity_id: notify.oversight_android_tv
+```
+Or press `button.oversight_android_tv_screen_on`.
+
+### Restart the overlay service
+The device drops off for a moment while it restarts.
+```yaml
+action: button.press
+target:
+  entity_id: button.oversight_android_tv_restart_overlay_service
+```
+
+### Target several devices at once
+Actions accept device and area targets and run on every OverSight device they cover.
+```yaml
+action: oversight_android_tv_notifications.send_notification
+target:
+  area_id: living_room
+data:
+  message: Dinner is ready
+```
+
+---
+
+## Clock Appearance
+
+### Make the clock bigger and bold (other settings are kept)
+```yaml
+action: oversight_android_tv_notifications.set_clock_appearance
+target:
+  entity_id: notify.oversight_android_tv
+data:
+  font_size: 20
+  font_weight: bold
+```
+
+### Clock colors
+```yaml
+action: oversight_android_tv_notifications.set_clock_appearance
+target:
+  entity_id: notify.oversight_android_tv
+data:
+  color: "#FFD700"
+  background_color: "#80000000"
+  display_shadow: false
 ```
 
 ---

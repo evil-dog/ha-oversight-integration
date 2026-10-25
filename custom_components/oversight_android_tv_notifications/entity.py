@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -47,3 +47,7 @@ class OversightEntity(CoordinatorEntity[OversightDataUpdateCoordinator]):
             return await call
         except OversightApiClientError as exception:
             raise HomeAssistantError(str(exception)) from exception
+
+    async def _async_update_setting(self, call: Awaitable[dict[str, Any]]) -> None:
+        """Send a /set/* call and apply the device state it returns."""
+        self.coordinator.async_set_info(await self._async_api_call(call))

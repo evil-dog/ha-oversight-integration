@@ -24,3 +24,12 @@ keep-runtime-typing = true
 
 [lint.mccabe]
 max-complexity = 25
+
+[lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert is how pytest checks results
+    "PLR2004", # literal values in assertions
+    "ARG001",  # fixtures requested only for their side effects
+    "PLR0913", # pytest passes fixtures and parameters as arguments
+    "PLR0917",
+]

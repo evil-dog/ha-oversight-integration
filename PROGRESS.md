@@ -28,3 +28,12 @@
 - Custom services: `send_fixed_notification`, `remove_fixed_notification`, `screen_on`
 - Services resolve target device via entity targeting (multi-device safe)
 - `services.yaml` with full field definitions
+
+## Phase 5: Review Fixes & API Coverage ✅
+- Actions are platform entity services registered in `async_setup`; device and area targets reach every matched device
+- New entities: notification layout select, display debug switch (disabled by default), device name text, screen on and restart buttons
+- New action `set_clock_appearance` (merges onto the current clock settings); `send_notification` gains `id` and `layout`
+- `remove_fixed_notification` hides the badge and expires it after 1s so the device deletes it
+- Setting changes apply the state the device returns instead of waiting for the next poll
+- Diagnostics, icons, `PARALLEL_UPDATES`, translated selector options; translations are the single source of action text
+- Test suite (pytest-homeassistant-custom-component) with a CI workflow

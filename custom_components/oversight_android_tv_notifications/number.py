@@ -20,6 +20,8 @@ if TYPE_CHECKING:
 
     from .data import OversightConfigEntry
 
+PARALLEL_UPDATES = 1
+
 
 @dataclass(frozen=True, kw_only=True)
 class OversightNumberDescription(NumberEntityDescription):
@@ -117,7 +119,6 @@ class OversightNumber(OversightEntity, NumberEntity):
         """Set the value."""
         client = self.coordinator.client
         method = getattr(client, self.entity_description.api_method)
-        await self._async_api_call(
+        await self._async_update_setting(
             method(**{self.entity_description.api_param: int(value)})
         )
-        await self.coordinator.async_request_refresh()

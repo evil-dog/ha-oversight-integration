@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 
     from .data import OversightConfigEntry
 
+PARALLEL_UPDATES = 1
+
 
 @dataclass(frozen=True, kw_only=True)
 class OversightSwitchDescription(SwitchEntityDescription):
@@ -50,6 +52,15 @@ ENTITY_DESCRIPTIONS: tuple[OversightSwitchDescription, ...] = (
         state_key="pixel_shift",
         api_method="async_set_settings",
         api_param="pixelShift",
+    ),
+    OversightSwitchDescription(
+        key="display_debug",
+        translation_key="display_debug",
+        entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
+        state_key="display_debug",
+        api_method="async_set_settings",
+        api_param="displayDebug",
     ),
 )
 
@@ -93,5 +104,6 @@ class OversightSwitch(OversightEntity, SwitchEntity):
         """Send the new switch state to the device."""
         client = self.coordinator.client
         method = getattr(client, self.entity_description.api_method)
-        await self._async_api_call(method(**{self.entity_description.api_param: value}))
-        await self.coordinator.async_request_refresh()
+        await self._async_update_setting(
+            method(**{self.entity_description.api_param: value})
+        )

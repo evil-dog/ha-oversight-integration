@@ -4,26 +4,39 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.const import Platform
+from homeassistant.const import CONF_HOST, CONF_PORT, Platform
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import OversightApiClient
-from .const import CONF_HOST, CONF_PORT, LOGGER
+from .const import DOMAIN, LOGGER
 from .coordinator import OversightDataUpdateCoordinator
 from .data import OversightData
+from .services import async_setup_services
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.typing import ConfigType
 
     from .data import OversightConfigEntry
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.NOTIFY,
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SWITCH,
+    Platform.TEXT,
 ]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa: ARG001
+    """Set up the OverSight Android TV actions."""
+    async_setup_services(hass)
+    return True
 
 
 async def async_setup_entry(
@@ -46,13 +59,9 @@ async def async_setup_entry(
 
     await coordinator.async_config_entry_first_refresh()
 
-    entry.runtime_data = OversightData(
-        client=client,
-        coordinator=coordinator,
-    )
+    entry.runtime_data = OversightData(coordinator=coordinator)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
 
@@ -63,11 +72,3 @@ async def async_unload_entry(
 ) -> bool:
     """Handle removal of an entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-
-async def async_reload_entry(
-    hass: HomeAssistant,
-    entry: OversightConfigEntry,
-) -> None:
-    """Reload config entry."""
-    await hass.config_entries.async_reload(entry.entry_id)

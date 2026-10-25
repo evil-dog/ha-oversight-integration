@@ -6,10 +6,6 @@ LOGGER: Logger = getLogger(__package__)
 
 DOMAIN = "oversight_android_tv_notifications"
 
-CONF_HOST = "host"
-CONF_PORT = "port"
-CONF_DEVICE_ID = "device_id"
-CONF_DEVICE_NAME = "device_name"
-
 DEFAULT_PORT = 5001
 DEFAULT_SCAN_INTERVAL = 30
+DEFAULT_DEVICE_NAME = "OverSight Device"

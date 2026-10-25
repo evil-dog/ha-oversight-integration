@@ -1,11 +1,12 @@
 {
     "domain": "oversight_android_tv_notifications",
-    "name": "OverSight Android TV",
+    "name": "OverSight Android TV Notifications",
     "codeowners": [
         "@evil-dog"
     ],
     "config_flow": true,
     "documentation": "https://github.com/evil-dog/ha-oversight-integration",
+    "integration_type": "device",
     "iot_class": "local_polling",
     "issue_tracker": "https://github.com/evil-dog/ha-oversight-integration/issues",
     "version": "0.1.0",

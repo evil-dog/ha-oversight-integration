@@ -10,6 +10,7 @@ import aiohttp
 
 REQUEST_TIMEOUT = 10
 RETRIES = 2
+RETRY_DELAY = 1
 
 
 class OversightApiClientError(Exception):
@@ -76,9 +77,21 @@ class OversightApiClient:
             "post", f"{self.base_url}/notify_fixed", data=data
         )
 
-    async def async_get_fixed_notifications(self) -> dict[str, Any]:
-        """Get active fixed notifications."""
-        return await self._api_wrapper("get", f"{self.base_url}/fixed_notifications")
+    async def async_get_layouts(self) -> dict[str, Any]:
+        """Get the notification layout list and the selected layout."""
+        return await self._api_wrapper("get", f"{self.base_url}/")
+
+    async def async_get_overlay_customization(self) -> dict[str, Any]:
+        """Get the clock appearance settings."""
+        return await self._api_wrapper("get", f"{self.base_url}/overlay_customization")
+
+    async def async_set_overlay_customization(
+        self, data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Replace the clock appearance settings; omitted fields reset to defaults."""
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/overlay_customization", data=data
+        )
 
     async def async_screen_on(self) -> dict[str, Any]:
         """Wake the device screen."""
@@ -107,7 +120,7 @@ class OversightApiClient:
         last_exception: Exception | None = None
         for attempt in range(1 + RETRIES if retry else 1):
             if attempt:
-                await asyncio.sleep(1)
+                await asyncio.sleep(RETRY_DELAY)
             try:
                 async with (
                     asyncio.timeout(REQUEST_TIMEOUT),

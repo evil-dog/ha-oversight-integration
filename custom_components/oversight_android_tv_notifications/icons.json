@@ -1,0 +1,73 @@
+{
+    "entity": {
+        "button": {
+            "screen_on": {
+                "default": "mdi:television"
+            }
+        },
+        "number": {
+            "overlay_visibility": {
+                "default": "mdi:brightness-6"
+            },
+            "clock_overlay_visibility": {
+                "default": "mdi:clock-outline"
+            },
+            "notification_duration": {
+                "default": "mdi:timer-outline"
+            },
+            "fixed_notifications_visibility": {
+                "default": "mdi:eye-outline"
+            }
+        },
+        "select": {
+            "hot_corner": {
+                "default": "mdi:arrow-top-right"
+            },
+            "notification_layout": {
+                "default": "mdi:page-layout-body"
+            }
+        },
+        "switch": {
+            "display_notifications": {
+                "default": "mdi:message-badge",
+                "state": {
+                    "off": "mdi:message-off"
+                }
+            },
+            "display_fixed_notifications": {
+                "default": "mdi:pin",
+                "state": {
+                    "off": "mdi:pin-off"
+                }
+            },
+            "pixel_shift": {
+                "default": "mdi:arrow-all"
+            },
+            "display_debug": {
+                "default": "mdi:bug"
+            }
+        },
+        "text": {
+            "device_name": {
+                "default": "mdi:rename-box"
+            }
+        }
+    },
+    "services": {
+        "send_notification": {
+            "service": "mdi:message-badge"
+        },
+        "send_fixed_notification": {
+            "service": "mdi:pin"
+        },
+        "remove_fixed_notification": {
+            "service": "mdi:pin-off"
+        },
+        "screen_on": {
+            "service": "mdi:television"
+        },
+        "set_clock_appearance": {
+            "service": "mdi:clock-edit-outline"
+        }
+    }
+}
