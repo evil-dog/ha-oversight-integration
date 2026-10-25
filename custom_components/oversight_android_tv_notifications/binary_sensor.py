@@ -14,7 +14,7 @@ from .entity import OversightEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .data import OversightConfigEntry
 
@@ -29,7 +29,7 @@ ENTITY_DESCRIPTIONS = (
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001
     entry: OversightConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up OverSight binary sensors."""
     async_add_entities(
@@ -43,6 +43,11 @@ async def async_setup_entry(
 
 class OversightConnectivitySensor(OversightEntity, BinarySensorEntity):
     """Connectivity sensor for an OverSight device."""
+
+    @property
+    def available(self) -> bool:
+        """Stay available so a failed poll reports off instead of unavailable."""
+        return True
 
     @property
     def is_on(self) -> bool:

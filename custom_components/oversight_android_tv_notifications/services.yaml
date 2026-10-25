@@ -4,6 +4,7 @@ send_notification:
   target:
     entity:
       integration: oversight_android_tv_notifications
+      domain: notify
   fields:
     message:
       name: Message
@@ -73,6 +74,7 @@ send_fixed_notification:
   target:
     entity:
       integration: oversight_android_tv_notifications
+      domain: notify
   fields:
     id:
       name: ID
@@ -167,6 +169,7 @@ remove_fixed_notification:
   target:
     entity:
       integration: oversight_android_tv_notifications
+      domain: notify
   fields:
     id:
       name: ID
@@ -182,3 +185,4 @@ screen_on:
   target:
     entity:
       integration: oversight_android_tv_notifications
+      domain: notify

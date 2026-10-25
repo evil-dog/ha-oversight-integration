@@ -7,7 +7,9 @@ import socket
 from typing import Any
 
 import aiohttp
-import async_timeout
+
+REQUEST_TIMEOUT = 10
+RETRIES = 2
 
 
 class OversightApiClientError(Exception):
@@ -61,7 +63,10 @@ class OversightApiClient:
 
     async def async_send_notification(self, data: dict[str, Any]) -> dict[str, Any]:
         """Send a popup notification."""
-        return await self._api_wrapper("post", f"{self.base_url}/notify", data=data)
+        # Not idempotent: retrying after a timeout could show the popup twice
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/notify", data=data, retry=False
+        )
 
     async def async_send_fixed_notification(
         self, data: dict[str, Any]
@@ -81,47 +86,60 @@ class OversightApiClient:
 
     async def async_restart_service(self) -> dict[str, Any]:
         """Restart the overlay service."""
-        return await self._api_wrapper("post", f"{self.base_url}/restart_service")
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/restart_service", retry=False
+        )
 
     async def _api_wrapper(
         self,
         method: str,
         url: str,
         data: dict | None = None,
-        retries: int = 2,
+        *,
+        retry: bool = True,
     ) -> dict[str, Any]:
-        """Wrap API calls with error handling and retry on connection errors."""
+        """
+        Wrap API calls with error handling.
+
+        Connection errors and timeouts are retried when [retry] is set. Error
+        responses from the device are raised immediately with its message.
+        """
         last_exception: Exception | None = None
-        for attempt in range(1 + retries):
+        for attempt in range(1 + RETRIES if retry else 1):
+            if attempt:
+                await asyncio.sleep(1)
             try:
-                async with async_timeout.timeout(10):
-                    response = await self._session.request(
-                        method=method,
-                        url=url,
-                        json=data,
-                    )
-                    response.raise_for_status()
-                    resp_json = await response.json()
+                async with (
+                    asyncio.timeout(REQUEST_TIMEOUT),
+                    self._session.request(
+                        method=method, url=url, json=data
+                    ) as response,
+                ):
+                    status = response.status
+                    resp_json = await _read_json(response)
             except (TimeoutError, aiohttp.ClientError, socket.gaierror) as exception:
                 last_exception = exception
-                if attempt < retries:
-                    await asyncio.sleep(1)
-                    continue
-            except Exception as exception:
-                msg = (
-                    "Unexpected error communicating with OverSight device - "
-                    f"{exception}"
-                )
-                raise OversightApiClientError(msg) from exception
-            else:
-                if not resp_json.get("success", False):
-                    msg = resp_json.get("message", "Unknown API error")
-                    raise OversightApiClientError(msg)
+                continue
 
-                return resp_json.get("result", {})
+            if resp_json is None:
+                msg = f"Invalid response from OverSight device (HTTP {status})"
+                raise OversightApiClientError(msg)
+            if status >= 400 or not resp_json.get("success", False):  # noqa: PLR2004
+                msg = resp_json.get("message") or f"HTTP {status}"
+                raise OversightApiClientError(msg)
+            return resp_json.get("result") or {}
 
         msg = (
             "Error communicating with OverSight device at "
             f"{self._host}:{self._port} - {last_exception}"
         )
         raise OversightApiClientCommunicationError(msg) from last_exception
+
+
+async def _read_json(response: aiohttp.ClientResponse) -> dict[str, Any] | None:
+    """Return the response body as a JSON object, or None if it is not one."""
+    try:
+        body = await response.json(content_type=None)
+    except ValueError:
+        return None
+    return body if isinstance(body, dict) else None

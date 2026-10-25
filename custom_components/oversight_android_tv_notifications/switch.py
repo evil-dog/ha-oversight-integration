@@ -12,7 +12,7 @@ from .entity import OversightEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .data import OversightConfigEntry
 
@@ -57,7 +57,7 @@ ENTITY_DESCRIPTIONS: tuple[OversightSwitchDescription, ...] = (
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001
     entry: OversightConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up OverSight switch entities."""
     async_add_entities(
@@ -83,14 +83,15 @@ class OversightSwitch(OversightEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:  # noqa: ARG002
         """Turn on the switch."""
-        client = self.coordinator.client
-        method = getattr(client, self.entity_description.api_method)
-        await method(**{self.entity_description.api_param: True})
-        await self.coordinator.async_request_refresh()
+        await self._async_set(value=True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:  # noqa: ARG002
         """Turn off the switch."""
+        await self._async_set(value=False)
+
+    async def _async_set(self, *, value: bool) -> None:
+        """Send the new switch state to the device."""
         client = self.coordinator.client
         method = getattr(client, self.entity_description.api_method)
-        await method(**{self.entity_description.api_param: False})
+        await self._async_api_call(method(**{self.entity_description.api_param: value}))
         await self.coordinator.async_request_refresh()

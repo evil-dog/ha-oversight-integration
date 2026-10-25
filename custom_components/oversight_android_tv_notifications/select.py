@@ -11,7 +11,7 @@ from .entity import OversightEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .data import OversightConfigEntry
 
@@ -35,7 +35,7 @@ ENTITY_DESCRIPTIONS = (
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001
     entry: OversightConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up OverSight select entities."""
     async_add_entities(
@@ -59,5 +59,7 @@ class OversightHotCornerSelect(OversightEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Change the hot corner setting."""
-        await self.coordinator.client.async_set_overlay(hotCorner=option)
+        await self._async_api_call(
+            self.coordinator.client.async_set_overlay(hotCorner=option)
+        )
         await self.coordinator.async_request_refresh()

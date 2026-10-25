@@ -10,7 +10,7 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 if TYPE_CHECKING:
-    from homeassistant.components.zeroconf import ZeroconfServiceInfo
+    from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .api import (
     OversightApiClient,
@@ -49,19 +49,20 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except OversightApiClientError:
                 errors["base"] = "unknown"
             else:
-                device_id = info.get("deviceId", "")
-                device_name = (info.get("settings") or {}).get(
-                    "deviceName", "OverSight Device"
-                )
-                await self.async_set_unique_id(device_id)
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=device_name,
-                    data={
-                        CONF_HOST: host,
-                        CONF_PORT: int(port),
-                    },
-                )
+                device_id = info.get("deviceId")
+                if not device_id:
+                    errors["base"] = "missing_device_id"
+                else:
+                    await self.async_set_unique_id(device_id)
+                    self._abort_if_unique_id_configured()
+                    device_name = (info.get("settings") or {}).get("deviceName")
+                    return self.async_create_entry(
+                        title=device_name or "OverSight Device",
+                        data={
+                            CONF_HOST: host,
+                            CONF_PORT: int(port),
+                        },
+                    )
 
         return self.async_show_form(
             step_id="user",

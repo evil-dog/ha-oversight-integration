@@ -16,7 +16,7 @@ from .entity import OversightEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .data import OversightConfigEntry
 
@@ -89,7 +89,7 @@ ENTITY_DESCRIPTIONS: tuple[OversightNumberDescription, ...] = (
 async def async_setup_entry(
     hass: HomeAssistant,  # noqa: ARG001
     entry: OversightConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up OverSight number entities."""
     async_add_entities(
@@ -117,5 +117,7 @@ class OversightNumber(OversightEntity, NumberEntity):
         """Set the value."""
         client = self.coordinator.client
         method = getattr(client, self.entity_description.api_method)
-        await method(**{self.entity_description.api_param: int(value)})
+        await self._async_api_call(
+            method(**{self.entity_description.api_param: int(value)})
+        )
         await self.coordinator.async_request_refresh()

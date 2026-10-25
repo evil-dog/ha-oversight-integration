@@ -4,13 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .api import OversightApiClientError
 from .const import DOMAIN
 from .coordinator import OversightDataUpdateCoordinator
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable
+
     from homeassistant.helpers.entity import EntityDescription
 
 
@@ -36,3 +40,10 @@ class OversightEntity(CoordinatorEntity[OversightDataUpdateCoordinator]):
             manufacturer="OverSight",
             model="Android TV Overlay",
         )
+
+    async def _async_api_call[T](self, call: Awaitable[T]) -> T:
+        """Await an API call, raising client errors as HomeAssistantError."""
+        try:
+            return await call
+        except OversightApiClientError as exception:
+            raise HomeAssistantError(str(exception)) from exception

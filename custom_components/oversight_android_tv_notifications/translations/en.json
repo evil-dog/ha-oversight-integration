@@ -14,6 +14,7 @@
         },
         "error": {
             "connection": "Unable to connect to the device.",
+            "missing_device_id": "The device did not report a device ID. Make sure the OverSight app has finished starting, then try again.",
             "unknown": "Unknown error occurred."
         },
         "abort": {
