@@ -5,16 +5,23 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "pip"
-    directory: "/"
+    # requirements.txt lives in the devcontainer folder, not the repo root
+    directory: "/.devcontainer"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     ignore:
       # Dependabot should not update Home Assistant as that should match the homeassistant key in hacs.json
       - dependency-name: "homeassistant"

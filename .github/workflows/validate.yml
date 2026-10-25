@@ -11,13 +11,22 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   hassfest: # https://developers.home-assistant.io/blog/2020/04/16/hassfest
     name: Hassfest validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run hassfest validation
         uses: home-assistant/actions/hassfest@cd6f3635a740c84d8a14f6121a90068b8ece6bf6 # master
@@ -25,9 +34,11 @@ jobs:
   hacs: # https://github.com/hacs/action
     name: HACS validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
+      # The action always runs the ghcr.io/hacs/action:main image; this pin only fixes action.yml
       - name: Run HACS validation
-        uses: hacs/action@d556e736723344f83838d08488c983a15381059a # 22.5.0
+        uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
         with:
           category: integration
           # Remove this 'ignore' key when you have added brand images for your integration to https://github.com/home-assistant/brands
