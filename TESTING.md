@@ -16,6 +16,14 @@ target:
   entity_id: notify.oversight_android_tv
 ```
 
+### Device status (needs an app version that reports status)
+Check these in Developer Tools → States. They are unavailable on older app versions.
+- `binary_sensor.oversight_android_tv_screen`: on while the TV screen is on
+- `binary_sensor.oversight_android_tv_overlay_permission`: on (problem) if the app can't draw over other apps
+- `binary_sensor.oversight_android_tv_battery_optimization`: on (problem) if the app isn't exempt from battery optimization
+
+The app version is on the device page (Settings → Devices & services → OverSight → device).
+
 ---
 
 ## Overlay Settings
@@ -350,6 +358,7 @@ data:
 ```
 
 ### Remove a badge permanently
+Removing a badge that is already gone is not an error.
 ```yaml
 action: oversight_android_tv_notifications.remove_fixed_notification
 target:

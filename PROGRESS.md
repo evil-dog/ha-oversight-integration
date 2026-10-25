@@ -37,3 +37,8 @@
 - Setting changes apply the state the device returns instead of waiting for the next poll
 - Diagnostics, icons, `PARALLEL_UPDATES`, translated selector options; translations are the single source of action text
 - Test suite (pytest-homeassistant-custom-component) with a CI workflow
+
+## Phase 6: App Status & Badge Delete ✅
+- Uses the app's new status report: Screen sensor, Overlay permission and Battery optimization problem sensors, app version on the device page (kept current on app updates)
+- `remove_fixed_notification` uses `DELETE /notify_fixed/{id}` (404 counts as already gone)
+- Older apps without status keep working: status sensors are unavailable and badge removal falls back to hide + 1s expiration

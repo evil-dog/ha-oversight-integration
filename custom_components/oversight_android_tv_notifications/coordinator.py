@@ -7,6 +7,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import callback
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import OversightApiClient, OversightApiClientError
@@ -20,6 +21,18 @@ if TYPE_CHECKING:
     from .data import OversightConfigEntry
 
 DEFAULT_LAYOUT = "Default"
+# versionCode reported by local/debug builds instead of major*10000 + minor*100 + patch.
+# Release v0.0.1 also maps to 1, but it predates status reporting so never sends it.
+DEV_BUILD_VERSION = 1
+
+
+def format_app_version(version: int | None) -> str | None:
+    """Turn the app's versionCode (e.g. 302) into a version string ("0.3.2")."""
+    if version is None:
+        return None
+    if version == DEV_BUILD_VERSION:
+        return "development build"
+    return f"{version // 10000}.{version // 100 % 100}.{version % 100}"
 
 
 def _get(section: dict[str, Any], key: str, *, default: Any) -> Any:
@@ -44,6 +57,21 @@ class OversightDeviceState:
     pixel_shift: bool = False
     display_debug: bool = False
     layout_names: list[str] = field(default_factory=list)
+    # From the status block; None when the app is too old to report it
+    app_version: int | None = None
+    screen_on: bool | None = None
+    overlay_permission_granted: bool | None = None
+    battery_optimization_exempt: bool | None = None
+
+    @property
+    def reports_status(self) -> bool:
+        """
+        Return whether the app reports status.
+
+        Apps that do also support DELETE /notify_fixed/{id}; both arrived in
+        the same release.
+        """
+        return self.app_version is not None
 
     @classmethod
     def from_api_response(
@@ -53,6 +81,7 @@ class OversightDeviceState:
         overlay = info.get("overlay") or {}
         settings = info.get("settings") or {}
         notifications = info.get("notifications") or {}
+        status = info.get("status") or {}
 
         layout_names = [
             layout["name"] for layout in layouts.get("list") or [] if layout.get("name")
@@ -85,7 +114,20 @@ class OversightDeviceState:
             pixel_shift=_get(settings, "pixelShift", default=False),
             display_debug=_get(settings, "displayDebug", default=False),
             layout_names=layout_names,
+            app_version=status.get("version"),
+            screen_on=status.get("isScreenOn"),
+            overlay_permission_granted=_state_is(
+                status.get("permissionState"), "GRANTED"
+            ),
+            battery_optimization_exempt=_state_is(
+                status.get("batteryOptimizationState"), "ENABLED"
+            ),
         )
+
+
+def _state_is(value: str | None, expected: str) -> bool | None:
+    """Compare a reported enum value, keeping None when it isn't reported."""
+    return None if value is None else value == expected
 
 
 class OversightDataUpdateCoordinator(DataUpdateCoordinator[OversightDeviceState]):
@@ -118,7 +160,9 @@ class OversightDataUpdateCoordinator(DataUpdateCoordinator[OversightDeviceState]
             self._layouts = await self.client.async_get_layouts()
         except OversightApiClientError as exception:
             raise UpdateFailed(exception) from exception
-        return OversightDeviceState.from_api_response(info, self._layouts)
+        state = OversightDeviceState.from_api_response(info, self._layouts)
+        self._async_update_sw_version(state)
+        return state
 
     @callback
     def async_set_info(self, info: dict[str, Any]) -> None:
@@ -126,3 +170,16 @@ class OversightDataUpdateCoordinator(DataUpdateCoordinator[OversightDeviceState]
         self.async_set_updated_data(
             OversightDeviceState.from_api_response(info, self._layouts)
         )
+
+    @callback
+    def _async_update_sw_version(self, state: OversightDeviceState) -> None:
+        """Keep the device's software version current when the app is updated."""
+        sw_version = format_app_version(state.app_version)
+        if sw_version is None:
+            return
+        device_registry = dr.async_get(self.hass)
+        for device in dr.async_entries_for_config_entry(
+            device_registry, self.config_entry.entry_id
+        ):
+            if device.sw_version != sw_version:
+                device_registry.async_update_device(device.id, sw_version=sw_version)

@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import OversightApiClientError
 from .const import DOMAIN
-from .coordinator import OversightDataUpdateCoordinator
+from .coordinator import OversightDataUpdateCoordinator, format_app_version
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -39,6 +39,10 @@ class OversightEntity(CoordinatorEntity[OversightDataUpdateCoordinator]):
             name=coordinator.config_entry.title,
             manufacturer="OverSight",
             model="Android TV Overlay",
+            # Later changes are applied by the coordinator
+            sw_version=format_app_version(
+                coordinator.data.app_version if coordinator.data else None
+            ),
         )
 
     async def _async_api_call[T](self, call: Awaitable[T]) -> T:

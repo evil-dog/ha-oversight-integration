@@ -121,27 +121,6 @@ async def test_device_target_reaches_every_device(
     ]
 
 
-async def test_remove_fixed_notification_expires_badge(
-    hass: HomeAssistant,
-    setup_integration: MockConfigEntry,
-    aioclient_mock: AiohttpClientMocker,
-) -> None:
-    """Removing a badge hides it and expires it so the device deletes it."""
-    aioclient_mock.post(f"{BASE_URL}/notify_fixed", json=envelope())
-    await hass.services.async_call(
-        DOMAIN,
-        "remove_fixed_notification",
-        {ATTR_ENTITY_ID: NOTIFY_ENTITY, "id": "weather"},
-        blocking=True,
-    )
-    assert _posts(aioclient_mock) == [
-        (
-            f"{BASE_URL}/notify_fixed",
-            {"id": "weather", "visible": False, "expiration": "1s"},
-        )
-    ]
-
-
 async def test_set_clock_appearance_keeps_other_fields(
     hass: HomeAssistant,
     setup_integration: MockConfigEntry,

@@ -5,8 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.notify import NotifyEntity, NotifyEntityFeature
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityDescription
 
+from .api import OversightApiClientError, OversightApiClientNotFoundError
 from .entity import OversightEntity
 
 if TYPE_CHECKING:
@@ -71,10 +73,19 @@ class OversightNotifyEntity(OversightEntity, NotifyEntity):
 
     async def async_handle_remove_fixed_notification(self, **kwargs: Any) -> None:
         """Handle the remove_fixed_notification action."""
-        # The API has no delete: hide the badge now and let a 1s expiration
+        client = self.coordinator.client
+        if self.coordinator.data is not None and self.coordinator.data.reports_status:
+            try:
+                await client.async_delete_fixed_notification(kwargs["id"])
+            except OversightApiClientNotFoundError:
+                return  # Already gone
+            except OversightApiClientError as exception:
+                raise HomeAssistantError(str(exception)) from exception
+            return
+        # Older apps have no delete: hide the badge now and let a 1s expiration
         # make the device purge it, instead of keeping a hidden badge forever.
         await self._async_api_call(
-            self.coordinator.client.async_send_fixed_notification(
+            client.async_send_fixed_notification(
                 {"id": kwargs["id"], "visible": False, "expiration": "1s"}
             )
         )

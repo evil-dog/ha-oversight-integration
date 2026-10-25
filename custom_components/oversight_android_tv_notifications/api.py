@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import socket
+from http import HTTPStatus
 from typing import Any
+from urllib.parse import quote
 
 import aiohttp
 
@@ -19,6 +21,10 @@ class OversightApiClientError(Exception):
 
 class OversightApiClientCommunicationError(OversightApiClientError):
     """Exception to indicate a communication error."""
+
+
+class OversightApiClientNotFoundError(OversightApiClientError):
+    """Exception to indicate the requested item does not exist on the device."""
 
 
 class OversightApiClient:
@@ -75,6 +81,13 @@ class OversightApiClient:
         """Send a fixed notification (badge)."""
         return await self._api_wrapper(
             "post", f"{self.base_url}/notify_fixed", data=data
+        )
+
+    async def async_delete_fixed_notification(self, notification_id: str) -> None:
+        """Delete a fixed notification (badge); needs an app that reports status."""
+        await self._api_wrapper(
+            "delete",
+            f"{self.base_url}/notify_fixed/{quote(notification_id, safe='')}",
         )
 
     async def async_get_layouts(self) -> dict[str, Any]:
@@ -139,6 +152,8 @@ class OversightApiClient:
                 raise OversightApiClientError(msg)
             if status >= 400 or not resp_json.get("success", False):  # noqa: PLR2004
                 msg = resp_json.get("message") or f"HTTP {status}"
+                if status == HTTPStatus.NOT_FOUND:
+                    raise OversightApiClientNotFoundError(msg)
                 raise OversightApiClientError(msg)
             return resp_json.get("result") or {}
 

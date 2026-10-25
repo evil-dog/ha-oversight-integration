@@ -34,7 +34,7 @@ INFO: dict[str, Any] = {
     "settings": {
         "deviceName": TITLE,
         "remotePort": PORT,
-        "displayDebug": None,
+        "displayDebug": False,
         "pixelShift": True,
     },
     "notifications": {
@@ -45,7 +45,13 @@ INFO: dict[str, Any] = {
         # 0 is a valid value and must not fall back to the default of 100
         "fixedNotificationsVisibility": 0,
     },
-    "status": None,
+    "status": {
+        "id": None,
+        "version": 302,
+        "permissionState": "GRANTED",
+        "batteryOptimizationState": "SKIPPED",
+        "isScreenOn": True,
+    },
 }
 
 LAYOUTS: dict[str, Any] = {

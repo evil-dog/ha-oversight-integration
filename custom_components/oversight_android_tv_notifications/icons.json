@@ -1,5 +1,19 @@
 {
     "entity": {
+        "binary_sensor": {
+            "screen": {
+                "default": "mdi:television",
+                "state": {
+                    "off": "mdi:television-off"
+                }
+            },
+            "overlay_permission": {
+                "default": "mdi:layers"
+            },
+            "battery_optimization": {
+                "default": "mdi:battery-heart-variant"
+            }
+        },
         "button": {
             "screen_on": {
                 "default": "mdi:television"

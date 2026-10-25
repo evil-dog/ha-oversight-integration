@@ -30,6 +30,17 @@
         }
     },
     "entity": {
+        "binary_sensor": {
+            "screen": {
+                "name": "Screen"
+            },
+            "overlay_permission": {
+                "name": "Overlay permission"
+            },
+            "battery_optimization": {
+                "name": "Battery optimization"
+            }
+        },
         "button": {
             "screen_on": {
                 "name": "Screen on"

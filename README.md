@@ -95,6 +95,9 @@ Each device gets these entities:
 | Entity | Type | What it does |
 |---|---|---|
 | Connectivity | Binary sensor | On while the device answers; off when it can't be reached |
+| Screen | Binary sensor | Whether the TV screen is on |
+| Overlay permission | Binary sensor (diagnostic) | Problem when the app isn't allowed to draw over other apps, so nothing can show |
+| Battery optimization | Binary sensor (diagnostic) | Problem when the app isn't exempt from battery optimization, so Android may stop its service |
 | Notifications | Notify | Sends a popup with `notify.send_message` (message and title) |
 | Overlay visibility | Number | Background dimmer opacity, 0–95% |
 | Clock overlay visibility | Number | Clock opacity, 0–100% |
@@ -109,6 +112,8 @@ Each device gets these entities:
 | Device name | Text | Name the device advertises on the network |
 | Screen on | Button | Wake the screen |
 | Restart overlay service | Button | Restart the OverSight service on the device |
+
+The device page also shows the app version.
 
 ## Actions
 
@@ -178,8 +183,7 @@ The integration polls each device every 30 seconds. When you change a setting fr
 ## Known limitations
 
 - Badges can't be listed or read back from Home Assistant; badges only flow from Home Assistant to the device.
-- Removing a badge hides it immediately and the device deletes it about a second later, because the app's API has no delete call.
-- The device doesn't report its screen state or app version yet, so there are no entities for them.
+- Older versions of the OverSight app (before status reporting was added) work with reduced features: the Screen, Overlay permission and Battery optimization sensors are unavailable, no app version is shown, and removing a badge hides it immediately while the device deletes it about a second later. Update the app to get all of them.
 - Brand images (logo and icon) are not included yet.
 
 ## Troubleshooting
@@ -189,6 +193,8 @@ The integration polls each device every 30 seconds. When you change a setting fr
 - **"The device did not report a device ID":** the app is still starting; wait a moment and try again.
 - **An action fails with a message from the device** (for example "Invalid MDI icon name"): the device rejected a field value. The message names the field.
 - **Connectivity is off:** the device is asleep, off the network, or the app's service stopped. Press *Restart overlay service* once the device is reachable again.
+- **Nothing appears on the TV but actions succeed:** check the *Overlay permission* sensor. If it reports a problem, grant OverSight permission to display over other apps in the TV's settings.
+- **The device keeps going offline on its own:** check the *Battery optimization* sensor. If it reports a problem, exempt OverSight from battery optimization so Android doesn't stop it.
 
 ## Issues
 
