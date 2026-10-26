@@ -20,7 +20,7 @@ target:
 Check these in Developer Tools → States. They are unavailable on older app versions.
 - `binary_sensor.oversight_android_tv_screen`: on while the TV screen is on
 - `binary_sensor.oversight_android_tv_overlay_permission`: on (problem) if the app can't draw over other apps
-- `binary_sensor.oversight_android_tv_battery_optimization`: on (problem) if the app isn't exempt from battery optimization
+- `binary_sensor.oversight_android_tv_battery_optimization`: on (problem) if the app isn't exempt from battery optimization; off on devices that can't grant the exemption on screen (e.g. Google TV)
 
 The app version is on the device page (Settings → Devices & services → OverSight → device).
 

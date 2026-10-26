@@ -78,6 +78,32 @@ async def test_status_sensors(
     )
 
 
+@pytest.mark.parametrize(
+    ("battery_state", "expected"),
+    [("SKIPPED", STATE_ON), ("ENABLED", STATE_OFF), ("BLOCKED", STATE_OFF)],
+)
+async def test_battery_optimization_states(
+    hass: HomeAssistant,
+    setup_integration: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
+    battery_state: str,
+    expected: str,
+) -> None:
+    """Only SKIPPED is a problem; BLOCKED devices can't grant the exemption."""
+    info = copy.deepcopy(INFO)
+    info["status"]["batteryOptimizationState"] = battery_state
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{BASE_URL}/info", json=envelope(info))
+    aioclient_mock.get(f"{BASE_URL}/", json=envelope(LAYOUTS))
+    await setup_integration.runtime_data.coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert (
+        hass.states.get("binary_sensor.living_room_tv_battery_optimization").state
+        == expected
+    )
+
+
 async def test_sw_version_tracks_app_updates(
     hass: HomeAssistant,
     setup_integration: MockConfigEntry,

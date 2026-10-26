@@ -61,7 +61,9 @@ class OversightDeviceState:
     app_version: int | None = None
     screen_on: bool | None = None
     overlay_permission_granted: bool | None = None
-    battery_optimization_exempt: bool | None = None
+    # Only SKIPPED is a problem; BLOCKED means the device can't grant the
+    # exemption on screen (e.g. Google TV), which the app treats as fine
+    battery_optimization_skipped: bool | None = None
 
     @property
     def reports_status(self) -> bool:
@@ -119,8 +121,8 @@ class OversightDeviceState:
             overlay_permission_granted=_state_is(
                 status.get("permissionState"), "GRANTED"
             ),
-            battery_optimization_exempt=_state_is(
-                status.get("batteryOptimizationState"), "ENABLED"
+            battery_optimization_skipped=_state_is(
+                status.get("batteryOptimizationState"), "SKIPPED"
             ),
         )
 

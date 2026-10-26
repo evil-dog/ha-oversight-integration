@@ -57,7 +57,7 @@ STATUS_DESCRIPTIONS: tuple[OversightStatusSensorDescription, ...] = (
         translation_key="battery_optimization",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda state: _negate(state.battery_optimization_exempt),
+        value_fn=lambda state: state.battery_optimization_skipped,
     ),
 )
 
