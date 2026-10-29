@@ -174,6 +174,73 @@ data:
   id: alarm
 ```
 
+A badge for each open door, all from one automation with shared settings. Each badge's `id` comes from its door sensor, so every door gets its own badge and closing a door removes only that one. The full check runs when Home Assistant starts and when the TV becomes reachable again, which clears badges for doors that closed while either was offline. List the doors in both the first trigger and `doors`, since a state trigger's `entity_id` can't use a variable.
+
+```yaml
+automation:
+  - alias: Door badges on TV
+    mode: parallel
+    max: 20
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.front_door
+          - binary_sensor.back_door
+          - binary_sensor.garage_door
+        to: ["on", "off"]
+      - trigger: homeassistant
+        event: start
+        id: full_check
+      # TV reachable again after a reboot, app restart or network drop
+      - trigger: state
+        entity_id: binary_sensor.living_room_tv_screen
+        from: "unavailable"
+        to: ["on", "off"]
+        id: full_check
+    variables:
+      tv: notify.living_room_tv_notifications
+      doors:
+        - binary_sensor.front_door
+        - binary_sensor.back_door
+        - binary_sensor.garage_door
+    actions:
+      - if:
+          - condition: trigger
+            id: full_check
+        then:
+          # Give the door sensors and the TV connection a moment to come up
+          - delay: "00:00:30"
+      - repeat:
+          for_each: "{{ doors if trigger.id == 'full_check' else [trigger.entity_id] }}"
+          sequence:
+            - variables:
+                badge_id: "door_{{ repeat.item.split('.')[1] }}"
+            - choose:
+                - conditions: "{{ is_state(repeat.item, 'on') }}"
+                  sequence:
+                    - action: oversight_android_tv_notifications.send_fixed_notification
+                      target:
+                        entity_id: "{{ tv }}"
+                      data:
+                        id: "{{ badge_id }}"
+                        text: "{{ state_attr(repeat.item, 'friendly_name') }} open"
+                        icon: mdi:door-open
+                        background_color: "#CCB71C1C"
+                        shape: rounded
+                        expiration: "12h"
+                - conditions: "{{ is_state(repeat.item, 'off') }}"
+                  sequence:
+                    - action: oversight_android_tv_notifications.remove_fixed_notification
+                      target:
+                        entity_id: "{{ tv }}"
+                      data:
+                        id: "{{ badge_id }}"
+              # Keep going with the other doors if the TV is unreachable
+              continue_on_error: true
+```
+
+The app saves its badges and restores them when it restarts, so open-door badges survive a TV reboot without Home Assistant's help. The TV trigger is there to remove badges for doors that closed while the TV was offline.
+
 Quote color values in YAML: `#` starts a comment, so write `"#FF5252"`, not `#FF5252`. [TESTING.md](TESTING.md) has an example for every entity and action.
 
 ## How data is updated
