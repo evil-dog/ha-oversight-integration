@@ -12,6 +12,17 @@
                     "port": "Port of the OverSight API, shown in the app's settings (default 5001)."
                 }
             },
+            "reconfigure": {
+                "description": "Update the IP address or port of your OverSight Android TV device.",
+                "data": {
+                    "host": "Host",
+                    "port": "Port"
+                },
+                "data_description": {
+                    "host": "IP address or hostname of the Android TV device running OverSight.",
+                    "port": "Port of the OverSight API, shown in the app's settings (default 5001)."
+                }
+            },
             "zeroconf_confirm": {
                 "description": "Found OverSight device: **{name}**. Do you want to add it?"
             }
@@ -26,7 +37,9 @@
             "already_in_progress": "Setup of this device is already in progress.",
             "connection": "Unable to connect to the discovered device.",
             "missing_device_id": "The discovered device did not report a device ID.",
-            "unknown": "Unknown error occurred."
+            "reconfigure_successful": "The device address was updated.",
+            "unknown": "Unknown error occurred.",
+            "wrong_device": "The device at that address is a different OverSight device than this entry."
         }
     },
     "entity": {

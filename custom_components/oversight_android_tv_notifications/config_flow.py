@@ -11,6 +11,8 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .api import (
@@ -54,7 +56,10 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["base"] = "missing_device_id"
                 else:
                     await self.async_set_unique_id(device_id)
-                    self._abort_if_unique_id_configured()
+                    # Re-adding a known device by hand fixes its address
+                    self._abort_if_unique_id_configured(
+                        updates={CONF_HOST: host, CONF_PORT: int(port)}
+                    )
                     device_name = (info.get("settings") or {}).get("deviceName")
                     return self.async_create_entry(
                         title=device_name or DEFAULT_DEVICE_NAME,
@@ -66,28 +71,43 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_HOST,
-                        default=(user_input or {}).get(CONF_HOST, vol.UNDEFINED),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT,
-                        ),
-                    ),
-                    vol.Required(
-                        CONF_PORT,
-                        default=(user_input or {}).get(CONF_PORT, DEFAULT_PORT),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1,
-                            max=65535,
-                            mode=selector.NumberSelectorMode.BOX,
-                        ),
-                    ),
-                },
-            ),
+            data_schema=_host_port_schema(user_input or {}),
+            errors=errors,
+        )
+
+    async def async_step_reconfigure(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Change the host or port of an existing entry, e.g. after an IP change."""
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            host = user_input[CONF_HOST]
+            port = int(user_input[CONF_PORT])
+            try:
+                info = await self._test_connection(host, port)
+            except OversightApiClientCommunicationError:
+                errors["base"] = "connection"
+            except OversightApiClientError:
+                errors["base"] = "unknown"
+            else:
+                device_id = info.get("deviceId")
+                if not device_id:
+                    errors["base"] = "missing_device_id"
+                else:
+                    # Refuse to point this entry at a different TV
+                    await self.async_set_unique_id(device_id)
+                    self._abort_if_unique_id_mismatch(reason="wrong_device")
+                    return self.async_update_reload_and_abort(
+                        entry,
+                        data_updates={CONF_HOST: host, CONF_PORT: port},
+                    )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=_host_port_schema(user_input or entry.data),
             errors=errors,
         )
 
@@ -160,3 +180,29 @@ class OversightConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             session=async_get_clientsession(self.hass),
         )
         return await client.async_get_info()
+
+
+def _host_port_schema(defaults: Mapping[str, Any]) -> vol.Schema:
+    """Return the host/port form schema, prefilled from defaults."""
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_HOST,
+                default=defaults.get(CONF_HOST, vol.UNDEFINED),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    type=selector.TextSelectorType.TEXT,
+                ),
+            ),
+            vol.Required(
+                CONF_PORT,
+                default=defaults.get(CONF_PORT, DEFAULT_PORT),
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=65535,
+                    mode=selector.NumberSelectorMode.BOX,
+                ),
+            ),
+        },
+    )

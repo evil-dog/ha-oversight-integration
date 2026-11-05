@@ -62,7 +62,7 @@ rules:
     status: todo
     comment: Action errors pass through the device's own (English) message.
   icon-translations: done
-  reconfiguration-flow: todo
+  reconfiguration-flow: done
   repair-issues:
     status: exempt
     comment: There are no user-fixable problems to raise as repairs.

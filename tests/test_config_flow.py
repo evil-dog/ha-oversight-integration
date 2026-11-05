@@ -120,16 +120,71 @@ async def test_user_flow_already_configured(
     config_entry: MockConfigEntry,
     aioclient_mock: AiohttpClientMocker,
 ) -> None:
-    """Adding the same device twice aborts."""
-    aioclient_mock.get(f"{BASE_URL}/info", json=envelope(INFO))
+    """Adding the same device twice aborts and updates its address."""
+    aioclient_mock.get(f"http://{NEW_HOST}:{PORT}/info", json=envelope(INFO))
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_HOST: HOST, CONF_PORT: PORT}
+        result["flow_id"], {CONF_HOST: NEW_HOST, CONF_PORT: PORT}
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
+    assert config_entry.data[CONF_HOST] == NEW_HOST
+
+
+async def test_reconfigure_flow(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
+) -> None:
+    """Reconfiguring points the entry at the device's new address."""
+    aioclient_mock.get(f"http://{NEW_HOST}:5002/info", json=envelope(INFO))
+    result = await config_entry.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: NEW_HOST, CONF_PORT: 5002}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert config_entry.data == {CONF_HOST: NEW_HOST, CONF_PORT: 5002}
+
+
+async def test_reconfigure_wrong_device(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
+) -> None:
+    """Reconfiguring to an address that answers as another device is refused."""
+    aioclient_mock.get(
+        f"http://{NEW_HOST}:{PORT}/info",
+        json=envelope({**INFO, "deviceId": "device-2"}),
+    )
+    result = await config_entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: NEW_HOST, CONF_PORT: PORT}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "wrong_device"
+    assert config_entry.data[CONF_HOST] == HOST
+
+
+async def test_reconfigure_connection_error(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
+) -> None:
+    """An unreachable new address shows an error and keeps the old one."""
+    aioclient_mock.get(f"http://{NEW_HOST}:{PORT}/info", exc=TimeoutError())
+    result = await config_entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: NEW_HOST, CONF_PORT: PORT}
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "connection"}
+    assert config_entry.data[CONF_HOST] == HOST
 
 
 async def test_zeroconf_flow(hass: HomeAssistant) -> None:

@@ -39,7 +39,7 @@ Any Android TV device running the OverSight app on the same network as Home Assi
     </ol>
 </details>
 
-The integration has no other options. If a device's IP address changes, discovery updates it automatically.
+The integration has no other options. If a device's IP address changes, discovery updates it automatically. To change it by hand (for example when mDNS doesn't reach Home Assistant), open the integration under Settings → Devices & services, click the ⋮ menu on the entry, choose **Reconfigure**, and enter the new host and port.
 
 ## Updating
 
