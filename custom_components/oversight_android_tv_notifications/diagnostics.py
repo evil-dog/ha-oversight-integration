@@ -6,14 +6,14 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.diagnostics import async_redact_data
-from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_HOST, CONF_WEBHOOK_ID
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from .data import OversightConfigEntry
 
-TO_REDACT = {CONF_HOST}
+TO_REDACT = {CONF_HOST, CONF_WEBHOOK_ID}
 
 
 async def async_get_config_entry_diagnostics(

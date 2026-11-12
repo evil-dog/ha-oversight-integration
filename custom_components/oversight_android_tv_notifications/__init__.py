@@ -13,6 +13,12 @@ from .const import DOMAIN, LOGGER
 from .coordinator import OversightDataUpdateCoordinator
 from .data import OversightData
 from .services import async_setup_services
+from .webhook import (
+    async_ensure_webhook_id,
+    async_get_webhook_url,
+    async_register_webhook,
+    async_unregister_webhook,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -44,6 +50,11 @@ async def async_setup_entry(
     entry: OversightConfigEntry,
 ) -> bool:
     """Set up OverSight Android TV from a config entry."""
+    # Register before the first refresh: if the device moved, that refresh
+    # fails, and the webhook is how the device reports its new address
+    async_ensure_webhook_id(hass, entry)
+    async_register_webhook(hass, entry)
+
     client = OversightApiClient(
         host=entry.data[CONF_HOST],
         port=int(entry.data[CONF_PORT]),
@@ -55,6 +66,7 @@ async def async_setup_entry(
         logger=LOGGER,
         config_entry=entry,
         client=client,
+        webhook_url=await async_get_webhook_url(hass, entry),
     )
 
     await coordinator.async_config_entry_first_refresh()
@@ -70,5 +82,16 @@ async def async_unload_entry(
     hass: HomeAssistant,
     entry: OversightConfigEntry,
 ) -> bool:
-    """Handle removal of an entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    """Unload a config entry."""
+    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded:
+        async_unregister_webhook(hass, entry)
+    return unloaded
+
+
+async def async_remove_entry(
+    hass: HomeAssistant,
+    entry: OversightConfigEntry,
+) -> None:
+    """Remove the webhook of an entry deleted while it wasn't loaded."""
+    async_unregister_webhook(hass, entry)

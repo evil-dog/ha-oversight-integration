@@ -172,9 +172,13 @@ async def test_restart_button(
 async def test_diagnostics_redacts_host(
     hass: HomeAssistant, setup_integration: MockConfigEntry
 ) -> None:
-    """Diagnostics include the state but not the device address."""
+    """Diagnostics include the state but not the device address or webhook."""
     diagnostics = await async_get_config_entry_diagnostics(hass, setup_integration)
-    assert diagnostics["entry"] == {"host": "**REDACTED**", "port": PORT}
+    assert diagnostics["entry"] == {
+        "host": "**REDACTED**",
+        "port": PORT,
+        "webhook_id": "**REDACTED**",
+    }
     assert diagnostics["state"]["fixed_notifications_visibility"] == 0
 
 

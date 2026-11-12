@@ -106,6 +106,12 @@ class OversightApiClient:
             "post", f"{self.base_url}/overlay_customization", data=data
         )
 
+    async def async_set_webhook(self, url: str | None) -> dict[str, Any]:
+        """Set (or clear, with None) the URL the device announces its address to."""
+        return await self._api_wrapper(
+            "post", f"{self.base_url}/set/webhook", data={"url": url}
+        )
+
     async def async_screen_on(self) -> dict[str, Any]:
         """Wake the device screen."""
         return await self._api_wrapper("post", f"{self.base_url}/screen_on")

@@ -64,6 +64,8 @@ class OversightDeviceState:
     # Only SKIPPED is a problem; BLOCKED means the device can't grant the
     # exemption on screen (e.g. Google TV), which the app treats as fine
     battery_optimization_skipped: bool | None = None
+    # None when the app is too old to accept a webhook
+    webhook_configured: bool | None = None
 
     @property
     def reports_status(self) -> bool:
@@ -124,6 +126,7 @@ class OversightDeviceState:
             battery_optimization_skipped=_state_is(
                 status.get("batteryOptimizationState"), "SKIPPED"
             ),
+            webhook_configured=status.get("webhookConfigured"),
         )
 
 
@@ -143,6 +146,7 @@ class OversightDataUpdateCoordinator(DataUpdateCoordinator[OversightDeviceState]
         logger: Logger,
         config_entry: OversightConfigEntry,
         client: OversightApiClient,
+        webhook_url: str | None = None,
     ) -> None:
         """Initialize the coordinator."""
         super().__init__(
@@ -154,6 +158,8 @@ class OversightDataUpdateCoordinator(DataUpdateCoordinator[OversightDeviceState]
         )
         self.client = client
         self._layouts: dict[str, Any] = {}
+        self._webhook_url = webhook_url
+        self._webhook_sent = False
 
     async def _async_update_data(self) -> OversightDeviceState:
         """Fetch data from the OverSight device."""
@@ -164,7 +170,30 @@ class OversightDataUpdateCoordinator(DataUpdateCoordinator[OversightDeviceState]
             raise UpdateFailed(exception) from exception
         state = OversightDeviceState.from_api_response(info, self._layouts)
         self._async_update_sw_version(state)
+        await self._async_send_webhook(state)
         return state
+
+    async def _async_send_webhook(self, state: OversightDeviceState) -> None:
+        """
+        Give the device the webhook to announce address changes to.
+
+        Sent once per setup, so a changed Home Assistant address reaches the
+        device, and again whenever the device reports it has none (e.g. after
+        its app data was cleared). Older apps without the endpoint are skipped.
+        """
+        if self._webhook_url is None or state.webhook_configured is None:
+            return
+        if self._webhook_sent and state.webhook_configured:
+            return
+        try:
+            await self.client.async_set_webhook(self._webhook_url)
+        except OversightApiClientError as err:
+            self.logger.warning(
+                "Could not send the webhook URL to %s: %s", self.config_entry.title, err
+            )
+            return
+        self._webhook_sent = True
+        state.webhook_configured = True
 
     @callback
     def async_set_info(self, info: dict[str, Any]) -> None:

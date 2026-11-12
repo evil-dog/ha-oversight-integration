@@ -42,3 +42,9 @@
 - Uses the app's new status report: Screen sensor, Overlay permission and Battery optimization problem sensors, app version on the device page (kept current on app updates)
 - `remove_fixed_notification` uses `DELETE /notify_fixed/{id}` (404 counts as already gone)
 - Older apps without status keep working: status sensors are unavailable and badge removal falls back to hide + 1s expiration
+
+## Phase 7: Address Tracking ✅
+- Reconfigure flow to change host/port; re-adding a device by hand updates its address
+- Per-entry webhook (`oversight_<hex>`, local only, POST) registered before the first refresh so a device that moved can still announce while setup retries
+- Integration pushes the webhook URL (Home Assistant's source IP toward the device, bypassing reverse proxies) via `POST /set/webhook`; re-sent when the device reports `webhookConfigured: false`
+- Announcements are verified against `/info` at the new address before the entry is updated and reloaded; a configured hostname that still resolves to the device is kept
