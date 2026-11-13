@@ -104,6 +104,44 @@ async def test_battery_optimization_states(
     )
 
 
+@pytest.mark.parametrize(
+    ("host", "expected"),
+    [
+        (
+            {"package": "us.bergnet.foyer", "homeVisible": True, "remapActive": True},
+            STATE_ON,
+        ),
+        (
+            {"package": "us.bergnet.foyer", "homeVisible": False, "remapActive": False},
+            STATE_OFF,
+        ),
+        (None, STATE_OFF),
+        ("missing", STATE_UNAVAILABLE),
+    ],
+)
+async def test_remapping_managed_by_foyer(
+    hass: HomeAssistant,
+    setup_integration: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
+    host: dict | str | None,
+    expected: str,
+) -> None:
+    """The sensor follows status.host; apps that don't report it are unavailable."""
+    info = copy.deepcopy(INFO)
+    if host != "missing":
+        info["status"]["host"] = host
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{BASE_URL}/info", json=envelope(info))
+    aioclient_mock.get(f"{BASE_URL}/", json=envelope(LAYOUTS))
+    await setup_integration.runtime_data.coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert (
+        hass.states.get("binary_sensor.living_room_tv_remapping_managed_by_foyer").state
+        == expected
+    )
+
+
 async def test_sw_version_tracks_app_updates(
     hass: HomeAssistant,
     setup_integration: MockConfigEntry,
@@ -191,7 +229,12 @@ async def test_old_app_status_sensors_unavailable(
     device_registry: dr.DeviceRegistry,
 ) -> None:
     """Without a status report the status sensors are unavailable."""
-    for sensor in ("screen", "overlay_permission", "battery_optimization"):
+    for sensor in (
+        "screen",
+        "overlay_permission",
+        "battery_optimization",
+        "remapping_managed_by_foyer",
+    ):
         state = hass.states.get(f"binary_sensor.living_room_tv_{sensor}")
         assert state.state == STATE_UNAVAILABLE
     assert (

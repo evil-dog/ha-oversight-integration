@@ -107,6 +107,7 @@ Each device gets these entities:
 | Screen | Binary sensor | Whether the TV screen is on |
 | Overlay permission | Binary sensor (diagnostic) | Problem when the app isn't allowed to draw over other apps, so nothing can show |
 | Battery optimization | Binary sensor (diagnostic) | Problem when the app isn't exempt from battery optimization, so Android may stop its service. Devices with no on-screen way to grant the exemption (e.g. Google TV) aren't reported as a problem |
+| Remapping managed by Foyer | Binary sensor (diagnostic) | On while the Foyer home screen app does the remote button remapping, so OverSight's own mappings are paused. Needs OverSight app 0.3.0 or newer |
 | Notifications | Notify | Sends a popup with `notify.send_message` (message and title) |
 | Overlay visibility | Number | Background dimmer opacity, 0–95% |
 | Clock overlay visibility | Number | Clock opacity, 0–100% |

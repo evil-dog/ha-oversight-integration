@@ -66,6 +66,8 @@ class OversightDeviceState:
     battery_optimization_skipped: bool | None = None
     # None when the app is too old to accept a webhook
     webhook_configured: bool | None = None
+    # Foyer does the button remapping; None when the app predates host reporting
+    remap_managed_by_foyer: bool | None = None
 
     @property
     def reports_status(self) -> bool:
@@ -127,7 +129,21 @@ class OversightDeviceState:
                 status.get("batteryOptimizationState"), "SKIPPED"
             ),
             webhook_configured=status.get("webhookConfigured"),
+            remap_managed_by_foyer=_remap_managed(status),
         )
+
+
+def _remap_managed(status: dict[str, Any]) -> bool | None:
+    """
+    Return whether a host app (Foyer) has taken over button remapping.
+
+    Apps that support hosts always send status.host (null when none is
+    registered); older apps leave it out.
+    """
+    if "host" not in status:
+        return None
+    host = status["host"] or {}
+    return bool(host.get("remapActive"))
 
 
 def _state_is(value: str | None, expected: str) -> bool | None:

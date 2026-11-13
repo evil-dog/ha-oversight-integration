@@ -12,6 +12,9 @@
             },
             "battery_optimization": {
                 "default": "mdi:battery-heart-variant"
+            },
+            "remap_managed_by_foyer": {
+                "default": "mdi:remote-tv"
             }
         },
         "button": {

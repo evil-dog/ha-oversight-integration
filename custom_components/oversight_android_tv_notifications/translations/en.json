@@ -52,6 +52,9 @@
             },
             "battery_optimization": {
                 "name": "Battery optimization"
+            },
+            "remap_managed_by_foyer": {
+                "name": "Remapping managed by Foyer"
             }
         },
         "button": {

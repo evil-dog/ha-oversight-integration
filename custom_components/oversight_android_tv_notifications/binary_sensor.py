@@ -59,6 +59,12 @@ STATUS_DESCRIPTIONS: tuple[OversightStatusSensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda state: state.battery_optimization_skipped,
     ),
+    OversightStatusSensorDescription(
+        key="remap_managed_by_foyer",
+        translation_key="remap_managed_by_foyer",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda state: state.remap_managed_by_foyer,
+    ),
 )
 
 
